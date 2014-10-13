@@ -1,4 +1,4 @@
 Tranks
 ======
 
-Turn based tank game. maybe
+Turn based tank game. maybe.
