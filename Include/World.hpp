@@ -7,6 +7,7 @@
 #include "Player.hpp"
 #include "MapCreator.hpp"
 #include "Container.hpp"
+#include "ButtonTypes.hpp"
 #include <SFML/System/NonCopyable.hpp>
 #include <SFML/Graphics/View.hpp>
 #include <SFML/Graphics/Texture.hpp>
@@ -45,6 +46,7 @@ private:
     TextureHolder textures;
     FontHolder* fonts;
     std::vector<Player *> players;
+    std::vector<GUI::TRANK_CONTROLS> pendingPlayerCommands;
     BoardPiece* map;
 
     SceneNode sceneGraph;

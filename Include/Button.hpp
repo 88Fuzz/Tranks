@@ -40,6 +40,8 @@ namespace GUI
         virtual void activate();
         virtual void deactivate();
 
+        void trigger();
+
         virtual bool handleEvent(const sf::Event*);
 
     private:

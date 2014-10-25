@@ -28,7 +28,11 @@ World::World(sf::RenderWindow* outputTarget, FontHolder* fonts) :
     loadTextures();
 
     for(int j = 0; j < MapCreator::PLAYER_COUNT; j++)
+    {
         players.push_back(new Player(j, &textures));
+        pendingPlayerCommands.push_back(GUI::TRANK_CONTROLS::CHECK_BOX);
+    }
+
 
     buildScene();
     //TODO figure out if this is needed
@@ -113,26 +117,24 @@ void World::adaptPlayerVelocity()
 
 void World::handleEvent(const sf::Event* event)
 {
+    GUI::Component* selected;
     if(event->type == sf::Event::MouseButtonPressed || event->type == sf::Event::MouseButtonReleased)
     {
         if(!trankControls.handleEvent(event))
-            sendCommandBox.handleEvent(event);
+        {
+            if(sendCommandBox.handleEvent(event))
+            {
+                if((selected = trankControls.getSelectedComponent()) != NULL)
+                    ((GUI::Button*) selected)->trigger();
+                else
+                    std::cout << "Nothing selected\n";
+
+                    //TODO fix this
+                    trankControls.deselect();
+                    sendCommandBox.deselect();
+            }
+        }
     }
-//        while(window.pollEvent(event))
-//                {
-//                    if(event.type == sf::Event::MouseWheelMoved)
-//                    {
-//                        std::cout << "movement " << event.mouseWheel.delta << "\n";
-//                        std::cout << "mouse x: " << sf::Mouse::getPosition(window).x << " y: "
-//                                << sf::Mouse::getPosition(window).y << "\n";
-//                    }
-//                    if(event.type == sf::Event::Closed)
-//                        window.close();
-//
-//                    if(event.type == sf::Event::Closed
-//                            || (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
-//                        window.close();
-//                }
 }
 
 void World::buildScene()
@@ -175,28 +177,67 @@ void World::buildScene()
 
     //Button initialization
     GUI::Button *tmpButton = new GUI::Button(tmpContext, GUI::TRANK_CONTROLS::MOVE_DOUBLE, buttonX, buttonY, 100, 100);
+    tmpButton->setCallback([&] ()
+    {
+        pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::MOVE_DOUBLE;
+        std::cout << "Button double move\n";
+    });
     trankControls.pack(tmpButton);
     buttonY += 100;
+
     tmpButton = new GUI::Button(tmpContext, GUI::TRANK_CONTROLS::MOVE_SINGLE, buttonX, buttonY, 100, 100);
+    tmpButton->setCallback([&] ()
+    {
+        pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::MOVE_SINGLE;
+        std::cout << "Button single move\n";
+    });
     trankControls.pack(tmpButton);
     buttonX += 100;
 
     tmpButton = new GUI::Button(tmpContext, GUI::TRANK_CONTROLS::CHECK_BOX, buttonX, buttonY, 100, 100);
+    tmpButton->setCallback([&] ()
+    {
+        pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::CHECK_BOX;
+        std::cout << "Nothing selected\n";
+    });
     sendCommandBox.pack(tmpButton);
     buttonX -= 100;
     buttonY += 100;
 
     tmpButton = new GUI::Button(tmpContext, GUI::TRANK_CONTROLS::ROTATE_FULL, buttonX, buttonY, 100, 100);
+    tmpButton->setCallback([&] ()
+    {
+        pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::ROTATE_FULL;
+        std::cout << "Button full rotate\n";
+    });
     trankControls.pack(tmpButton);
     buttonX -= 100;
+
     tmpButton = new GUI::Button(tmpContext, GUI::TRANK_CONTROLS::ROTATE_HALF_COUNTER, buttonX, buttonY, 100, 100);
+    tmpButton->setCallback([&] ()
+    {
+        pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::ROTATE_HALF_COUNTER;
+        std::cout << "Button rotate counter half\n";
+    });
     trankControls.pack(tmpButton);
     buttonX += 200;
+
     tmpButton = new GUI::Button(tmpContext, GUI::TRANK_CONTROLS::ROTATE_HALF_CLOCKWISE, buttonX, buttonY, 100, 100);
+    tmpButton->setCallback([&] ()
+    {
+        pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::ROTATE_HALF_CLOCKWISE;
+        std::cout << "Button rotate clock-wise half\n";
+    });
     trankControls.pack(tmpButton);
     buttonX -= 100;
     buttonY += 100;
+
     tmpButton = new GUI::Button(tmpContext, GUI::TRANK_CONTROLS::FIRE, buttonX, buttonY, 100, 100);
+    tmpButton->setCallback([&] ()
+    {
+        pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::FIRE;
+        std::cout << "Button FIRE\n";
+    });
     trankControls.pack(tmpButton);
 
 //    trankControls.pack()

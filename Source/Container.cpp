@@ -32,6 +32,27 @@ namespace GUI
         return false;
     }
 
+    /*
+     * returns the component that is selected. Returns NULL if nothing is selected
+     */
+    Component* Container::getSelectedComponent()
+    {
+        if(selectedChild >= 0)
+            return children[selectedChild];
+        return NULL;
+    }
+
+    /*
+     * If an item in the container is selected, then deselect it
+     */
+    void Container::deselect()
+    {
+        if(selectedChild >= 0)
+            children[selectedChild]->deselect();
+
+        selectedChild = -1;
+    }
+
     bool Container::handleEvent(const sf::Event* event)
     {
         if(event->mouseButton.button == sf::Mouse::Left)

@@ -12,7 +12,7 @@ namespace GUI
 {
 
     Button::Button(State::Context context, int enumButton, int x, int y, int width, int height) :
-                    callbackFunc(),
+                    callbackFunc(NULL),
                     text("", context.fonts->get(Fonts::Sansation), 16),
                     window(context.window),
                     toggle(false),
@@ -77,12 +77,17 @@ namespace GUI
         if(toggle)
             changeTexture(PRESSED);
 
-        if(callbackFunc)
-            callbackFunc();
+        trigger();
 
         // If we are not a toggle then deactivate the button since we are just momentarily activated.
         if(!toggle)
             deactivate();
+    }
+
+    void Button::trigger()
+    {
+        if(callbackFunc)
+            callbackFunc();
     }
 
     void Button::deactivate()

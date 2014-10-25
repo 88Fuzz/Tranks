@@ -14,7 +14,6 @@ namespace GUI
     public:
         typedef std::shared_ptr<Container> Ptr;
 
-    public:
         Container();
         virtual ~Container();
 
@@ -22,19 +21,18 @@ namespace GUI
 
         virtual bool isSelectable() const;
         virtual bool handleEvent(const sf::Event*);
+        Component* getSelectedComponent();
+        virtual void deselect();
 
     private:
-        virtual void draw(sf::RenderTarget&, sf::RenderStates) const;
+        std::vector<Component*> children;
+        int selectedChild;
 
+        virtual void draw(sf::RenderTarget&, sf::RenderStates) const;
         bool hasSelection() const;
         void select(std::size_t);
         void selectNext();
         void selectPrevious();
-
-    private:
-        std::vector<Component*> children;
-        //TODO REMOVE THIS
-        int selectedChild;
     };
 
 }
