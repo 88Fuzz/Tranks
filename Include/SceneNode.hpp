@@ -11,6 +11,7 @@
 
 struct Command;
 //class CommandQueue;
+class Player;
 
 class SceneNode: public sf::Transformable, public sf::Drawable, private sf::NonCopyable
 {
@@ -32,6 +33,7 @@ public:
     virtual sf::FloatRect getBoundingRect() const;
     virtual bool isDestroyed() const;
     SceneNode* getChildNode(int);
+    Player* removePlayerChildNode(int);
 
 protected:
     std::vector<SceneNode *> children;
@@ -47,8 +49,9 @@ private:
     virtual void drawCurrent(sf::RenderTarget&, sf::RenderStates) const;
     void drawChildren(sf::RenderTarget&, sf::RenderStates) const;
     void drawBoundingRect(sf::RenderTarget&, sf::RenderStates) const;
+    Player* findAndRemovePlayer();
 
-    Category::Type defaultCategory;
+    Category::Type type;
 };
 
 #endif

@@ -5,13 +5,13 @@
 #include <stdlib.h>
 #include <iostream>
 
-BoardPiece::BoardPiece(BoardPiece::Type pieceType, TextureHolder* textures, float x, float y) :
+BoardPiece::BoardPiece(Category::Type pieceType, TextureHolder* textures, float x, float y) :
         BoardPiece(pieceType, textures, x, y, 0)
 {
 }
 
-BoardPiece::BoardPiece(BoardPiece::Type pieceType, TextureHolder* textures, float x, float y, float angle) :
-        SceneNode(), type(pieceType)
+BoardPiece::BoardPiece(Category::Type pieceType, TextureHolder* textures, float x, float y, float angle) :
+        SceneNode(pieceType)
 {
     TextureData* table = initializeBoardPieceData();
     sprite = MySprite(textures->get(table[pieceType].textureId), table[pieceType].textureRect);

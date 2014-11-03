@@ -10,7 +10,7 @@
 
 MapCreator::MapCreator(TextureHolder* textures) :
 //MapCreator::MapCreator(const TextureHolder& textures)//:
-                map(new BoardPiece(BoardPiece::Type::PARENT, textures, 0, 0)),
+                map(new BoardPiece(Category::Type::PARENT, textures, 0, 0)),
                 boardTextures(textures),
                 mapWidth(-1),
                 mapHeight(-1),
@@ -243,7 +243,7 @@ void MapCreator::parseBoard(rapidxml::xml_node<> *node)
             //top left corner
             if(j == 0)
             {
-                newPiece = new BoardPiece(BoardPiece::Type::CORNER, boardTextures, x, y, -90.0);
+                newPiece = new BoardPiece(Category::Type::CORNER, boardTextures, x, y, -90.0);
                 x += newPiece->getSpriteWidth();
                 //TODO get this width and height better
                 tileWidth = newPiece->getSpriteWidth();
@@ -252,13 +252,13 @@ void MapCreator::parseBoard(rapidxml::xml_node<> *node)
             //top right corner
             else if(j == mapWidth - 1)
             {
-                newPiece = new BoardPiece(BoardPiece::Type::CORNER, boardTextures, x, y, 0);
+                newPiece = new BoardPiece(Category::Type::CORNER, boardTextures, x, y, 0);
                 y += newPiece->getSpriteHeight();
                 x = 0;
             }
             else
             {
-                newPiece = new BoardPiece(BoardPiece::Type::BORDER, boardTextures, x, y, 0);
+                newPiece = new BoardPiece(Category::Type::BORDER, boardTextures, x, y, 0);
                 x += newPiece->getSpriteWidth();
             }
             map->attachChild(newPiece);
@@ -268,9 +268,9 @@ void MapCreator::parseBoard(rapidxml::xml_node<> *node)
         {
             //bottom left corner
             if(j == mapWidth * (mapHeight - 1))
-                newPiece = new BoardPiece(BoardPiece::Type::CORNER, boardTextures, x, y, -180.0);
+                newPiece = new BoardPiece(Category::Type::CORNER, boardTextures, x, y, -180.0);
             else
-                newPiece = new BoardPiece(BoardPiece::Type::BORDER, boardTextures, x, y, -90.0);
+                newPiece = new BoardPiece(Category::Type::BORDER, boardTextures, x, y, -90.0);
 
             x += newPiece->getSpriteWidth();
             map->attachChild(newPiece);
@@ -280,9 +280,9 @@ void MapCreator::parseBoard(rapidxml::xml_node<> *node)
         {
             //bottom right corner
             if(j == mapWidth * mapHeight - 1)
-                newPiece = new BoardPiece(BoardPiece::Type::CORNER, boardTextures, x, y, 90.0);
+                newPiece = new BoardPiece(Category::Type::CORNER, boardTextures, x, y, 90.0);
             else
-                newPiece = new BoardPiece(BoardPiece::Type::BORDER, boardTextures, x, y, 90.0);
+                newPiece = new BoardPiece(Category::Type::BORDER, boardTextures, x, y, 90.0);
             y += newPiece->getSpriteHeight();
             x = 0;
             map->attachChild(newPiece);
@@ -290,14 +290,14 @@ void MapCreator::parseBoard(rapidxml::xml_node<> *node)
         //piece is on bottom edge
         else if(j >= mapWidth * (mapHeight - 1))
         {
-            newPiece = new BoardPiece(BoardPiece::Type::BORDER, boardTextures, x, y, 180.0);
+            newPiece = new BoardPiece(Category::Type::BORDER, boardTextures, x, y, 180.0);
             x += newPiece->getSpriteHeight();
             map->attachChild(newPiece);
         }
         //else it's a normal tile
         else
         {
-            newPiece = new BoardPiece(BoardPiece::Type::TILE, boardTextures, x, y, 0);
+            newPiece = new BoardPiece(Category::Type::TILE, boardTextures, x, y, 0);
             x += newPiece->getSpriteHeight();
             map->attachChild(newPiece);
         }
@@ -354,7 +354,7 @@ void MapCreator::parseBlock(rapidxml::xml_node<> *node)
     if(x != -1 && y != -1)
     {
         //TODO error check
-        map->swapChildNode(new BoardPiece(BoardPiece::Type::BLOCK, boardTextures, x * tileWidth, y * tileHeight),
+        map->swapChildNode(new BoardPiece(Category::Type::BLOCK, boardTextures, x * tileWidth, y * tileHeight),
                 get1d(x, y));
     }
     else
@@ -414,25 +414,25 @@ void MapCreator::parseSpawn(rapidxml::xml_node<> *node)
         case 1:
             //TODO error check
             map->layerChildNode(
-                    new BoardPiece(BoardPiece::Type::SPAWN_P1, boardTextures, x * tileWidth, y * tileHeight),
+                    new BoardPiece(Category::Type::SPAWN_P1, boardTextures, x * tileWidth, y * tileHeight),
                     get1d(x, y));
             break;
         case 2:
             //TODO error check
             map->layerChildNode(
-                    new BoardPiece(BoardPiece::Type::SPAWN_P2, boardTextures, x * tileWidth, y * tileHeight),
+                    new BoardPiece(Category::Type::SPAWN_P2, boardTextures, x * tileWidth, y * tileHeight),
                     get1d(x, y));
             break;
         case 3:
             //TODO error check
             map->layerChildNode(
-                    new BoardPiece(BoardPiece::Type::SPAWN_P3, boardTextures, x * tileWidth, y * tileHeight),
+                    new BoardPiece(Category::Type::SPAWN_P3, boardTextures, x * tileWidth, y * tileHeight),
                     get1d(x, y));
             break;
         case 4:
             //TODO error check
             map->layerChildNode(
-                    new BoardPiece(BoardPiece::Type::SPAWN_P4, boardTextures, x * tileWidth, y * tileHeight),
+                    new BoardPiece(Category::Type::SPAWN_P4, boardTextures, x * tileWidth, y * tileHeight),
                     get1d(x, y));
             break;
         default:
@@ -474,7 +474,7 @@ void MapCreator::parseFlag(rapidxml::xml_node<> *node)
     if(x != -1 && y != -1)
     {
         //TODO error check
-        map->layerChildNode(new BoardPiece(BoardPiece::Type::FLAG, boardTextures, x * tileWidth, y * tileHeight),
+        map->layerChildNode(new BoardPiece(Category::Type::FLAG, boardTextures, x * tileWidth, y * tileHeight),
                 get1d(x, y));
     }
     else
@@ -520,25 +520,25 @@ void MapCreator::parseDeflect(rapidxml::xml_node<> *node)
         case 'N':
             //TODO error check
             map->swapChildNode(
-                    new BoardPiece(BoardPiece::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, 90.0),
+                    new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, 90.0),
                     get1d(x, y));
             break;
         case 'S':
             //TODO error check
             map->swapChildNode(
-                    new BoardPiece(BoardPiece::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, -90.0),
+                    new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, -90.0),
                     get1d(x, y));
             break;
         case 'E':
             //TODO error check
             map->swapChildNode(
-                    new BoardPiece(BoardPiece::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, 180.0),
+                    new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, 180.0),
                     get1d(x, y));
             break;
         case 'W':
             //TODO error check
             map->swapChildNode(
-                    new BoardPiece(BoardPiece::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight),
+                    new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight),
                     get1d(x, y));
             break;
         default:

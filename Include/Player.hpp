@@ -41,6 +41,8 @@ public:
     void setSpawnPos(sf::Vector2i, Direction);
     int getSpawnPosX();
     int getSpawnPosY();
+    sf::Vector2i getTilePos();
+    Player::Direction getForwardDirection();
     void startRotation(Rotation, int);
     void startMovement(int);
     virtual void drawCurrent(sf::RenderTarget& target, sf::RenderStates states) const;
@@ -53,7 +55,8 @@ private:
     //Tile position of spawn
     sf::Vector2i spawnPos;
     //Current tile position, for fine grained position use sprite
-    sf::Vector2i currentPos;
+    sf::Vector2i tilePos;
+    sf::Vector2i Pos;
 
     //Map information
     //the width of the map tiles, used to set the appropriate position for the sprite

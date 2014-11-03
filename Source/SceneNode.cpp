@@ -6,10 +6,9 @@
 //TODO figure this out
 std::queue<SceneNode *> g_drawingQ;
 
-
 //TODO update with comments here
 SceneNode::SceneNode(Category::Type category) :
-        children(), parent(NULL), defaultCategory(category)
+        children(), parent(NULL), type(category)
 {
 }
 
@@ -165,7 +164,7 @@ void SceneNode::onCommand(const Command* command, sf::Time dt)
 
 unsigned int SceneNode::getCategory() const
 {
-    return defaultCategory;
+    return type;
 }
 
 sf::FloatRect SceneNode::getBoundingRect() const
@@ -184,4 +183,34 @@ SceneNode* SceneNode::getChildNode(int pos)
     if(children.size() < pos)
         return NULL;
     return children[pos];
+}
+
+/*
+ * returns player node at position pos
+ */
+Player* SceneNode::removePlayerChildNode(int pos)
+{
+    if(children.size() < pos)
+        return NULL;
+
+    return children[pos]->findAndRemovePlayer();
+}
+
+/*
+ * returns any player at node, if none is present, return null
+ */
+Player* SceneNode::findAndRemovePlayer()
+{
+    SceneNode *player = NULL;
+    for(int j = 0; j < children.size(); j++)
+    {
+        if(children[j]->getCategory() == Category::PLAYER)
+        {
+            player = children[j];
+            //TODO figure out if this should be -1 or not
+            children.erase(children.begin() + j - 1);
+            return (Player *) player;
+        }
+    }
+    return NULL;
 }

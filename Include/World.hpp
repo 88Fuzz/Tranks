@@ -40,6 +40,12 @@ private:
         LAYERCOUNT
     };
 
+    //TODO change this to the number of players
+    int numPlayers;
+    int playersReady;
+    int mapTileWidth;
+    int mapTileHeight;
+
     sf::RenderWindow* window;
     sf::RenderTexture sceneTexture;
     sf::View worldView;
@@ -62,6 +68,7 @@ private:
     void adaptPlayerVelocity();
 
     void buildScene();
+    void validateMoves();
 //    void addEnemies();
 //    void addEnemy(Aircraft::Type type, float relX, float relY);
 //    void spawnEnemies();
@@ -69,6 +76,7 @@ private:
 //    void guideMissiles();
     sf::FloatRect getViewBounds() const;
     sf::FloatRect getBattlefieldBounds() const;
+    bool validateAction(Player::Direction, sf::Vector2i, int);
 };
 
 #endif

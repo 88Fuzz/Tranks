@@ -27,12 +27,13 @@ World::World(sf::RenderWindow* outputTarget, FontHolder* fonts) :
 
     loadTextures();
 
+    numPlayers = 1;
+    playersReady = 0;
     for(int j = 0; j < MapCreator::PLAYER_COUNT; j++)
     {
         players.push_back(new Player(j, &textures));
         pendingPlayerCommands.push_back(GUI::TRANK_CONTROLS::CHECK_BOX);
     }
-
 
     buildScene();
     //TODO figure out if this is needed
@@ -65,6 +66,14 @@ void World::update(sf::Time dt)
     // Remove all destroyed entities, create new ones
 //	sceneGraph.removeWrecks();
 
+    //TODO un-comment this statement
+//    if(players.size() == pendingPlayerCommands.size())
+    if(playersReady == numPlayers)
+    {
+        validateMoves();
+        playersReady = 0;
+    }
+
     // Regular update step, adapt position (correct if outside view)
     sceneGraph.update(dt);
 }
@@ -75,6 +84,72 @@ void World::draw()
     window->draw(sceneGraph);
     window->draw(trankControls);
     window->draw(sendCommandBox);
+}
+
+void World::validateMoves()
+{
+    Player::Direction facing;
+    sf::Vector2i tilePos;
+    for(int j = 0; j < pendingPlayerCommands.size(); j++)
+    {
+        switch(pendingPlayerCommands[j])
+        {
+        case GUI::TRANK_CONTROLS::MOVE_SINGLE:
+            facing = players[j]->getForwardDirection();
+            tilePos = players[j]->getTilePos();
+            if(validateAction(facing, tilePos, 1))
+                players[j]->startMovement(Player::SINGLE_MOVE);
+            break;
+        case GUI::TRANK_CONTROLS::MOVE_DOUBLE:
+            facing = players[j]->getForwardDirection();
+            tilePos = players[j]->getTilePos();
+            if(validateAction(facing, tilePos, 2))
+                players[j]->startMovement(Player::DOUBLE_MOVE);
+            break;
+        case GUI::TRANK_CONTROLS::ROTATE_HALF_CLOCKWISE:
+            players[j]->startRotation(Player::Rotation::CLOCKWISE, Player::SINGLE_ROTATION);
+            break;
+        case GUI::TRANK_CONTROLS::ROTATE_HALF_COUNTER:
+            players[j]->startRotation(Player::Rotation::COUNTER_CLOCKWISE, Player::SINGLE_ROTATION);
+            break;
+        case GUI::TRANK_CONTROLS::ROTATE_FULL:
+            players[j]->startRotation(Player::Rotation::CLOCKWISE, Player::DOUBLE_ROTATION);
+            break;
+        case GUI::TRANK_CONTROLS::FIRE:
+            break;
+        case GUI::TRANK_CONTROLS::CHECK_BOX:
+        default:
+            break;
+
+        }
+    }
+}
+
+bool World::validateAction(Player::Direction facing, sf::Vector2i tilePos, int numMoves)
+{
+    switch(facing)
+    {
+    case Player::Direction::NORTH:
+        if(tilePos.y - numMoves < 0)
+            return false;
+        break;
+    case Player::Direction::SOUTH:
+        if(tilePos.y + numMoves > mapTileHeight - 1)
+            return false;
+        break;
+    case Player::Direction::EAST:
+        if(tilePos.x + numMoves > mapTileWidth - 1)
+            return false;
+        break;
+    case Player::Direction::WEST:
+        if(tilePos.x - numMoves < 0)
+            return false;
+        break;
+
+    }
+
+    return true;
+
 }
 
 //CommandQueue* World::getCommandQueue()
@@ -129,9 +204,9 @@ void World::handleEvent(const sf::Event* event)
                 else
                     std::cout << "Nothing selected\n";
 
-                    //TODO fix this
-                    trankControls.deselect();
-                    sendCommandBox.deselect();
+                //TODO fix this
+                trankControls.deselect();
+                sendCommandBox.deselect();
             }
         }
     }
@@ -148,14 +223,17 @@ void World::buildScene()
 //    BoardPiece *board = mc.getMap();
     map = mc.getMap();
     sceneGraph.attachChild(map);
+    mapTileWidth = mc.getMapWidth();
+    mapTileHeight = mc.getMapHeight();
     int buttonX = 1600;
     int buttonY = 200;
 
     for(int j = 0; j < players.size(); j++)
     {
         //Set map boarders
-        players[j]->setMapWidth(mc.getMapWidth());
-        players[j]->setMapHeight(mc.getMapHeight());
+        //TODO player doesn't need map width/height anymore
+        players[j]->setMapWidth(mapTileWidth);
+        players[j]->setMapHeight(mapTileHeight);
         //Set player spawn position to the vector location
         players[j]->setTileWidth(mc.getTileWidth());
         players[j]->setSpawnPos(mc.getPlayerSpawnPos(j), mc.getPlayerSpawnFacing(j));
@@ -167,19 +245,20 @@ void World::buildScene()
 //        map.layerChildNode(&players[j], mc.get1d(players[j].getSpawnPositionX(), players[j].getSpawnPositionY()));
     }
 //    players[0]->startRotation(Player::Direction::CLOCKWISE, Player::SINGLE_ROTATION);
-    players[0]->startMovement(Player::SINGLE_MOVE);
+//    players[0]->startMovement(Player::SINGLE_MOVE);
 //    players[1]->startRotation(Player::Rotation::CLOCKWISE, Player::SINGLE_ROTATION);
-    players[1]->startMovement(Player::SINGLE_MOVE);
+//    players[1]->startMovement(Player::SINGLE_MOVE);
 //    players[2]->startRotation(Player::Direction::COUNTER_CLOCKWISE, Player::SINGLE_ROTATION);
-    players[2]->startMovement(Player::SINGLE_MOVE);
+//    players[2]->startMovement(Player::SINGLE_MOVE);
 //    players[3]->startRotation(Player::Rotation::COUNTER_CLOCKWISE, Player::DOUBLE_ROTATION);
-    players[3]->startMovement(Player::SINGLE_MOVE);
+//    players[3]->startMovement(Player::SINGLE_MOVE);
 
     //Button initialization
     GUI::Button *tmpButton = new GUI::Button(tmpContext, GUI::TRANK_CONTROLS::MOVE_DOUBLE, buttonX, buttonY, 100, 100);
     tmpButton->setCallback([&] ()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::MOVE_DOUBLE;
+        playersReady++;
         std::cout << "Button double move\n";
     });
     trankControls.pack(tmpButton);
@@ -189,6 +268,7 @@ void World::buildScene()
     tmpButton->setCallback([&] ()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::MOVE_SINGLE;
+        playersReady++;
         std::cout << "Button single move\n";
     });
     trankControls.pack(tmpButton);
@@ -198,6 +278,7 @@ void World::buildScene()
     tmpButton->setCallback([&] ()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::CHECK_BOX;
+        playersReady++;
         std::cout << "Nothing selected\n";
     });
     sendCommandBox.pack(tmpButton);
@@ -208,6 +289,7 @@ void World::buildScene()
     tmpButton->setCallback([&] ()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::ROTATE_FULL;
+        playersReady++;
         std::cout << "Button full rotate\n";
     });
     trankControls.pack(tmpButton);
@@ -217,6 +299,7 @@ void World::buildScene()
     tmpButton->setCallback([&] ()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::ROTATE_HALF_COUNTER;
+        playersReady++;
         std::cout << "Button rotate counter half\n";
     });
     trankControls.pack(tmpButton);
@@ -226,6 +309,7 @@ void World::buildScene()
     tmpButton->setCallback([&] ()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::ROTATE_HALF_CLOCKWISE;
+        playersReady++;
         std::cout << "Button rotate clock-wise half\n";
     });
     trankControls.pack(tmpButton);
@@ -236,6 +320,7 @@ void World::buildScene()
     tmpButton->setCallback([&] ()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::FIRE;
+        playersReady++;
         std::cout << "Button FIRE\n";
     });
     trankControls.pack(tmpButton);

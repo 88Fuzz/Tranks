@@ -7,7 +7,7 @@
  * Used to construct a player with no useful information.
  */
 Player::Player() :
-        SceneNode()
+        SceneNode(Category::PLAYER)
 {
 
 }
@@ -20,7 +20,7 @@ Player::Player(int playerNum, TextureHolder* textures) :
                 moveLimit(0),
                 forward(0),
                 spawnPos(),
-                SceneNode(),
+                SceneNode(Category::PLAYER),
                 spawnFacing(NORTH),
                 rotating(false),
                 moving(false),
@@ -44,23 +44,27 @@ void Player::updateCurrent(sf::Time dt)
     if(rotating)
     {
         forward += dt.asMilliseconds() * ROTATION_SPEED * rotationDir;
-        sprite.setRotation(forward);
-
         if(rotationDir > 0 && forward > rotationLimit)
         {
             rotating = false;
             forward = rotationLimit;
+            //set forward to a cardinal direction to prevent rounding errors later
+            forward = getForwardDirection();
         }
         else if(rotationDir < 0 && forward < rotationLimit)
         {
             rotating = false;
             forward = rotationLimit;
+            //set forward to a cardinal direction to prevent rounding errors later
+            forward = getForwardDirection();
         }
+
+        sprite.setRotation(forward);
     }
     else if(moving)
     {
         //TODO find better way to do this?
-        switch((int) forward)
+        switch(getForwardDirection())
         {
         case Direction::NORTH:
             sprite.move(0, -1 * dt.asMilliseconds() * MOVEMENT_SPEED);
@@ -116,9 +120,9 @@ void Player::setMapWidth(int width)
  */
 void Player::respawn()
 {
-    currentPos = spawnPos;
+//    tilePos = spawnPos;
     forward = spawnFacing;
-    sprite.setPosition(sf::Vector2f(currentPos.x * tileWidth, currentPos.y * tileWidth));
+    sprite.setPosition(sf::Vector2f(spawnPos.x * tileWidth, spawnPos.y * tileWidth));
 }
 
 /*
@@ -128,7 +132,7 @@ void Player::setSpawnPos(sf::Vector2i pos, Direction facing)
 {
 //TODO figure out if copy constructors work this way
     spawnPos = pos;
-    currentPos = pos;
+    tilePos = pos;
     sprite.setPosition(sf::Vector2f(pos.x * tileWidth, pos.y * tileWidth));
     forward = facing;
     spawnFacing = facing;
@@ -154,7 +158,6 @@ void Player::startRotation(Rotation rotateDir, int limit)
  */
 void Player::startMovement(int limit)
 {
-    int tileLimit;
     if(moving)
         //TODO logging
         std::cerr << "Already moving, game in bad state\n";
@@ -170,30 +173,23 @@ void Player::startMovement(int limit)
 //TODO THIS WILL BREAK HORRIBLY ONCE YOU GET MAP MOVEMENTS!
 //TODO THIS WILL BREAK HORRIBLY ONCE YOU GET MAP MOVEMENTS!
 
-    if(limit == DOUBLE_MOVE)
-        tileLimit = 2;
-    else
-        tileLimit = 1;
-
-    if(!checkValidMove(tileLimit))
-    {
-        std::cout << " DON'T MOVE!\n";
-        return;
-    }
-
-    switch((int) forward)
+    switch(getForwardDirection())
     {
     case Direction::NORTH:
         moveLimit = sprite.getPosition().y - limit;
+        tilePos.y -= limit / Player::SINGLE_MOVE;
         break;
     case Direction::SOUTH:
         moveLimit = sprite.getPosition().y + limit;
+        tilePos.y += limit / Player::SINGLE_MOVE;
         break;
     case Direction::EAST:
         moveLimit = sprite.getPosition().x + limit;
+        tilePos.x += limit / Player::SINGLE_MOVE;
         break;
     case Direction::WEST:
         moveLimit = sprite.getPosition().x - limit;
+        tilePos.x -= limit / Player::SINGLE_MOVE;
         break;
     default:
         std::cerr << "Error with the facing direction\n";
@@ -218,22 +214,22 @@ int Player::getSpawnPosY()
 bool Player::checkValidMove(int spacesMoved)
 {
     //Check if position is in the bounds of the map
-    switch((int) forward)
+    switch(getForwardDirection())
     {
     case Direction::NORTH:
-        if(currentPos.y - spacesMoved < 0)
+        if(tilePos.y - spacesMoved < 0)
             return false;
         break;
     case Direction::SOUTH:
-        if(currentPos.y + spacesMoved >= mapHeight)
+        if(tilePos.y + spacesMoved >= mapHeight)
             return false;
         break;
     case Direction::EAST:
-        if(currentPos.x + spacesMoved >= mapWidth)
+        if(tilePos.x + spacesMoved >= mapWidth)
             return false;
         break;
     case Direction::WEST:
-        if(currentPos.x - spacesMoved < 0)
+        if(tilePos.x - spacesMoved < 0)
             return false;
         break;
     default:
@@ -244,4 +240,20 @@ bool Player::checkValidMove(int spacesMoved)
 
     //TODO check if space is empty tile
     return true;
+}
+
+Player::Direction Player::getForwardDirection()
+{
+    if(mod(forward, Direction::NORTH) == 0)
+        return Direction::NORTH;
+    else if(mod(forward, Direction::SOUTH) == 0)
+        return Direction::SOUTH;
+    else if(mod(forward, Direction::WEST) == 0)
+        return Direction::WEST;
+    return Direction::EAST;
+}
+
+sf::Vector2i Player::getTilePos()
+{
+    return tilePos;
 }
