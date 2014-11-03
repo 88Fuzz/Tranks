@@ -72,3 +72,16 @@ int BoardPiece::layerChildNode(SceneNode *node, int pos)
     children[pos]->attachChild(node);
     return 1;
 }
+
+/*
+ * returns true if child pos is of type type, else false
+ */
+bool BoardPiece::checkTile(int pos, Category::Type type)
+{
+    if(children.size() < pos)
+        return false;
+
+    if(children[pos]->getCategory() == type)
+        return true;
+    return false;
+}

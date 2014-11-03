@@ -355,7 +355,7 @@ void MapCreator::parseBlock(rapidxml::xml_node<> *node)
     {
         //TODO error check
         map->swapChildNode(new BoardPiece(Category::Type::BLOCK, boardTextures, x * tileWidth, y * tileHeight),
-                get1d(x, y));
+                MapCreator::get1d(x, y, mapWidth));
     }
     else
     {
@@ -413,27 +413,23 @@ void MapCreator::parseSpawn(rapidxml::xml_node<> *node)
         {
         case 1:
             //TODO error check
-            map->layerChildNode(
-                    new BoardPiece(Category::Type::SPAWN_P1, boardTextures, x * tileWidth, y * tileHeight),
-                    get1d(x, y));
+            map->layerChildNode(new BoardPiece(Category::Type::SPAWN_P1, boardTextures, x * tileWidth, y * tileHeight),
+                    MapCreator::get1d(x, y, mapWidth));
             break;
         case 2:
             //TODO error check
-            map->layerChildNode(
-                    new BoardPiece(Category::Type::SPAWN_P2, boardTextures, x * tileWidth, y * tileHeight),
-                    get1d(x, y));
+            map->layerChildNode(new BoardPiece(Category::Type::SPAWN_P2, boardTextures, x * tileWidth, y * tileHeight),
+                    MapCreator::get1d(x, y, mapWidth));
             break;
         case 3:
             //TODO error check
-            map->layerChildNode(
-                    new BoardPiece(Category::Type::SPAWN_P3, boardTextures, x * tileWidth, y * tileHeight),
-                    get1d(x, y));
+            map->layerChildNode(new BoardPiece(Category::Type::SPAWN_P3, boardTextures, x * tileWidth, y * tileHeight),
+                    MapCreator::get1d(x, y, mapWidth));
             break;
         case 4:
             //TODO error check
-            map->layerChildNode(
-                    new BoardPiece(Category::Type::SPAWN_P4, boardTextures, x * tileWidth, y * tileHeight),
-                    get1d(x, y));
+            map->layerChildNode(new BoardPiece(Category::Type::SPAWN_P4, boardTextures, x * tileWidth, y * tileHeight),
+                    MapCreator::get1d(x, y, mapWidth));
             break;
         default:
             //TODO LOGGGGGGGGS
@@ -475,7 +471,7 @@ void MapCreator::parseFlag(rapidxml::xml_node<> *node)
     {
         //TODO error check
         map->layerChildNode(new BoardPiece(Category::Type::FLAG, boardTextures, x * tileWidth, y * tileHeight),
-                get1d(x, y));
+                MapCreator::get1d(x, y, mapWidth));
     }
     else
     {
@@ -519,27 +515,27 @@ void MapCreator::parseDeflect(rapidxml::xml_node<> *node)
         {
         case 'N':
             //TODO error check
+            std::cout << "WHAT THE FUCK: " << tileWidth << "\n";
             map->swapChildNode(
                     new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, 90.0),
-                    get1d(x, y));
+                    MapCreator::get1d(x, y, mapWidth));
             break;
         case 'S':
             //TODO error check
             map->swapChildNode(
                     new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, -90.0),
-                    get1d(x, y));
+                    MapCreator::get1d(x, y, mapWidth));
             break;
         case 'E':
             //TODO error check
             map->swapChildNode(
                     new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, 180.0),
-                    get1d(x, y));
+                    MapCreator::get1d(x, y, mapWidth));
             break;
         case 'W':
             //TODO error check
-            map->swapChildNode(
-                    new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight),
-                    get1d(x, y));
+            map->swapChildNode(new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight),
+                    MapCreator::get1d(x, y, mapWidth));
             break;
         default:
             //TODO LOGGGGGGGGS
@@ -599,9 +595,9 @@ int MapCreator::getHeight()
     return mapHeight;
 }
 
-int MapCreator::get1d(int x, int y)
+int MapCreator::get1d(int x, int y, int width)
 {
-    return mapWidth * y + x;
+    return width * y + x;
 }
 
 BoardPiece* MapCreator::getMap()

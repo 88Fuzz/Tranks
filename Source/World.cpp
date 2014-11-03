@@ -130,26 +130,29 @@ bool World::validateAction(Player::Direction facing, sf::Vector2i tilePos, int n
     switch(facing)
     {
     case Player::Direction::NORTH:
-        if(tilePos.y - numMoves < 0)
+        tilePos.y -= numMoves;
+        if(tilePos.y < 0)
             return false;
         break;
     case Player::Direction::SOUTH:
-        if(tilePos.y + numMoves > mapTileHeight - 1)
+        tilePos.y += numMoves;
+        if(tilePos.y > mapTileHeight - 1)
             return false;
         break;
     case Player::Direction::EAST:
-        if(tilePos.x + numMoves > mapTileWidth - 1)
+        tilePos.x += numMoves;
+        if(tilePos.x > mapTileWidth - 1)
             return false;
         break;
     case Player::Direction::WEST:
-        if(tilePos.x - numMoves < 0)
+        tilePos.x -= numMoves;
+        if(tilePos.x < 0)
             return false;
         break;
 
     }
 
-    return true;
-
+    return map->checkTile(MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth), Category::Type::TILE);
 }
 
 //CommandQueue* World::getCommandQueue()
@@ -240,7 +243,7 @@ void World::buildScene()
 
         //The player's spawn is in screen coordinates but in order to place it in the screen graph, it needs
         //the vector position, so get spawn position from mapCreator
-        if(!map->layerChildNode(players[j], mc.get1d(mc.getPlayerSpawnPos(j).x, mc.getPlayerSpawnPos(j).y)))
+        if(!map->layerChildNode(players[j], MapCreator::get1d(mc.getPlayerSpawnPos(j).x, mc.getPlayerSpawnPos(j).y, mapTileWidth)))
             std::cout << "you dun fuck up\n";
 //        map.layerChildNode(&players[j], mc.get1d(players[j].getSpawnPositionX(), players[j].getSpawnPositionY()));
     }

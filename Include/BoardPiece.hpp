@@ -21,6 +21,7 @@ public:
     float getSpriteHeight();
     int swapChildNode(SceneNode*, int);
     int layerChildNode(SceneNode*, int);
+    bool checkTile(int, Category::Type);
 
 private:
     MySprite sprite;

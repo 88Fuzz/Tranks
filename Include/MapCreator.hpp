@@ -24,7 +24,7 @@ public:
     int getTileWidth();
     int getHeight();
     int getTileHeight();
-    int get1d(int, int);
+    static int get1d(int, int, int);
     sf::Vector2i getPlayerSpawnPos(int);
     Player::Direction getPlayerSpawnFacing(int);
 
