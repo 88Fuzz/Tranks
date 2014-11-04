@@ -71,6 +71,7 @@ void World::update(sf::Time dt)
     if(playersReady == numPlayers)
     {
         validateMoves();
+        queueActions();
         playersReady = 0;
     }
 
@@ -86,25 +87,36 @@ void World::draw()
     window->draw(sendCommandBox);
 }
 
+void World::queueActions()
+{
+    for(int j=0; j< pendingPlayerCommands.size(); j++)
+    {
+        switch(pendingPlayerCommands[j])
+        {
+        }
+    }
+}
+
 void World::validateMoves()
 {
     Player::Direction facing;
     sf::Vector2i tilePos;
+    sf::Vector2i pendingLocations[pendingPlayerCommands.size()];
+
     for(int j = 0; j < pendingPlayerCommands.size(); j++)
     {
+        pendingLocations[j] = players[j]->getTilePos();
         switch(pendingPlayerCommands[j])
         {
         case GUI::TRANK_CONTROLS::MOVE_SINGLE:
-            facing = players[j]->getForwardDirection();
-            tilePos = players[j]->getTilePos();
-            if(validateAction(facing, tilePos, 1))
-                players[j]->startMovement(Player::SINGLE_MOVE);
+            if(validateAction(players[j], 1))
+                pendingLocations[j] = players[j]->getTilePos(1);
+//                players[j]->startMovement(Player::SINGLE_MOVE);
             break;
         case GUI::TRANK_CONTROLS::MOVE_DOUBLE:
-            facing = players[j]->getForwardDirection();
-            tilePos = players[j]->getTilePos();
-            if(validateAction(facing, tilePos, 2))
-                players[j]->startMovement(Player::DOUBLE_MOVE);
+            if(validateAction(players[j], 2))
+                pendingLocations[j] = players[j]->getTilePos(2);
+//                players[j]->startMovement(Player::DOUBLE_MOVE);
             break;
         case GUI::TRANK_CONTROLS::ROTATE_HALF_CLOCKWISE:
             players[j]->startRotation(Player::Rotation::CLOCKWISE, Player::SINGLE_ROTATION);
@@ -120,39 +132,48 @@ void World::validateMoves()
         case GUI::TRANK_CONTROLS::CHECK_BOX:
         default:
             break;
+        }
+    }
 
+    /*
+     * Check if future movents will cause colisions with other Tranks, if so remove their movements from pengingCommands
+     */
+    for(int j = 0; j < pendingPlayerCommands.size(); j++)
+    {
+        for(int i = j + 1; i < pendingPlayerCommands.size(); i++)
+        {
+            if(pendingLocations[j].x == pendingLocations[i].x && pendingLocations[j].y == pendingLocations[i].y)
+            {
+                if(pendingPlayerCommands[j] == GUI::TRANK_CONTROLS::MOVE_SINGLE
+                        || pendingPlayerCommands[j] == GUI::TRANK_CONTROLS::MOVE_DOUBLE)
+                    pendingPlayerCommands[j] = GUI::TRANK_CONTROLS::CHECK_BOX;
+
+                if(pendingPlayerCommands[i] == GUI::TRANK_CONTROLS::MOVE_SINGLE
+                        || pendingPlayerCommands[i] == GUI::TRANK_CONTROLS::MOVE_DOUBLE)
+                    pendingPlayerCommands[i] = GUI::TRANK_CONTROLS::CHECK_BOX;
+            }
         }
     }
 }
 
-bool World::validateAction(Player::Direction facing, sf::Vector2i tilePos, int numMoves)
+bool World::validateAction(Player *player, int numMoves)
 {
-    switch(facing)
+    sf::Vector2i tilePos;
+    /*
+     * check every tile up to numMoves
+     */
+    for(int j = 1; j <= numMoves; j++)
     {
-    case Player::Direction::NORTH:
-        tilePos.y -= numMoves;
-        if(tilePos.y < 0)
+        player->getTilePos(j);
+        if(tilePos.y < 0 || tilePos.y > mapTileHeight - 1)
             return false;
-        break;
-    case Player::Direction::SOUTH:
-        tilePos.y += numMoves;
-        if(tilePos.y > mapTileHeight - 1)
+        if(tilePos.x < 0 || tilePos.x > mapTileWidth - 1)
             return false;
-        break;
-    case Player::Direction::EAST:
-        tilePos.x += numMoves;
-        if(tilePos.x > mapTileWidth - 1)
+        if(!map->checkTile(MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth), Category::Type::TILE))
             return false;
-        break;
-    case Player::Direction::WEST:
-        tilePos.x -= numMoves;
-        if(tilePos.x < 0)
-            return false;
-        break;
-
     }
 
-    return map->checkTile(MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth), Category::Type::TILE);
+    return true;
 }
 
 //CommandQueue* World::getCommandQueue()
@@ -243,7 +264,8 @@ void World::buildScene()
 
         //The player's spawn is in screen coordinates but in order to place it in the screen graph, it needs
         //the vector position, so get spawn position from mapCreator
-        if(!map->layerChildNode(players[j], MapCreator::get1d(mc.getPlayerSpawnPos(j).x, mc.getPlayerSpawnPos(j).y, mapTileWidth)))
+        if(!map->layerChildNode(players[j],
+                MapCreator::get1d(mc.getPlayerSpawnPos(j).x, mc.getPlayerSpawnPos(j).y, mapTileWidth)))
             std::cout << "you dun fuck up\n";
 //        map.layerChildNode(&players[j], mc.get1d(players[j].getSpawnPositionX(), players[j].getSpawnPositionY()));
     }

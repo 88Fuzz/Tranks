@@ -42,6 +42,7 @@ public:
     int getSpawnPosX();
     int getSpawnPosY();
     sf::Vector2i getTilePos();
+    sf::Vector2i getTilePos(int);
     Player::Direction getForwardDirection();
     void startRotation(Rotation, int);
     void startMovement(int);

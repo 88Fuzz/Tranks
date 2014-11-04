@@ -257,3 +257,22 @@ sf::Vector2i Player::getTilePos()
 {
     return tilePos;
 }
+
+/*
+ * Returns space player will be if moved numSpaces forward
+ */
+sf::Vector2i Player::getTilePos(int numSpaces)
+{
+    switch(getForwardDirection())
+    {
+    case Player::Direction::NORTH:
+        return sf::Vector2i(tilePos.x, tilePos.y - numSpaces);
+    case Player::Direction::SOUTH:
+        return sf::Vector2i(tilePos.x, tilePos.y + numSpaces);
+    case Player::Direction::EAST:
+        return sf::Vector2i(tilePos.x + numSpaces, tilePos.y);
+    case Player::Direction::WEST:
+        return sf::Vector2i(tilePos.x - numSpaces, tilePos.y);
+    }
+    return tilePos;
+}

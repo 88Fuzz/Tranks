@@ -1,5 +1,5 @@
-#ifndef __BOOK_WORLD_HPP__
-#define __BOOK_WORLD_HPP__
+#ifndef __WORLD_HPP__
+#define __WORLD_HPP__
 
 #include "ResourceHolder.hpp"
 #include "ResourceIdentifiers.hpp"
@@ -8,6 +8,7 @@
 #include "MapCreator.hpp"
 #include "Container.hpp"
 #include "ButtonTypes.hpp"
+#include "CommandQueue.hpp"
 #include <SFML/System/NonCopyable.hpp>
 #include <SFML/Graphics/View.hpp>
 #include <SFML/Graphics/Texture.hpp>
@@ -57,7 +58,7 @@ private:
 
     SceneNode sceneGraph;
     SceneNode * sceneLayers[];
-//    CommandQueue mCommandQueue;
+    CommandQueue commandQueue;
 
     sf::FloatRect worldBounds;
     GUI::Container trankControls;
@@ -69,6 +70,7 @@ private:
 
     void buildScene();
     void validateMoves();
+    void queueActions();
 //    void addEnemies();
 //    void addEnemy(Aircraft::Type type, float relX, float relY);
 //    void spawnEnemies();
@@ -76,7 +78,7 @@ private:
 //    void guideMissiles();
     sf::FloatRect getViewBounds() const;
     sf::FloatRect getBattlefieldBounds() const;
-    bool validateAction(Player::Direction, sf::Vector2i, int);
+    bool validateAction(Player *, int);
 };
 
 #endif
