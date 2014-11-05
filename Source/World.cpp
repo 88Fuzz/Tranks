@@ -52,6 +52,7 @@ World::~World()
 
 void World::update(sf::Time dt)
 {
+    Command command;
     // Scroll the world, reset player velocity
 //	worldView.move(0.f, mScrollSpeed * dt.asSeconds());
 
@@ -75,6 +76,13 @@ void World::update(sf::Time dt)
         playersReady = 0;
     }
 
+    //TODO figure out how to do this
+    while(!commandQueue.isEmpty())
+    {
+        command = commandQueue.pop();
+        command.action();
+    }
+
     // Regular update step, adapt position (correct if outside view)
     sceneGraph.update(dt);
 }
@@ -89,10 +97,47 @@ void World::draw()
 
 void World::queueActions()
 {
-    for(int j=0; j< pendingPlayerCommands.size(); j++)
+    for(int j = 0; j < pendingPlayerCommands.size(); j++)
     {
+        Command command;
+        command.category = Category::Type::NONE;
         switch(pendingPlayerCommands[j])
         {
+        case GUI::TRANK_CONTROLS::MOVE_SINGLE:
+            command.action = [&]()
+            {
+                players[j]->startMovement(Player::SINGLE_MOVE);
+            };
+            commandQueue.push(command);
+            break;
+        case GUI::TRANK_CONTROLS::MOVE_DOUBLE:
+            command.action = [&]()
+            {
+                players[j]->startMovement(Player::DOUBLE_MOVE);
+            };
+            commandQueue.push(command);
+            break;
+        case GUI::TRANK_CONTROLS::ROTATE_HALF_CLOCKWISE:
+            command.action = [&]()
+            {
+                players[j]->startRotation(Player::CLOCKWISE,Player::SINGLE_ROTATION);
+            };
+            commandQueue.push(command);
+            break;
+        case GUI::TRANK_CONTROLS::ROTATE_HALF_COUNTER:
+            command.action = [&]()
+            {
+                players[j]->startRotation(Player::COUNTER_CLOCKWISE,Player::SINGLE_ROTATION);
+            };
+            commandQueue.push(command);
+            break;
+        case GUI::TRANK_CONTROLS::ROTATE_FULL:
+            command.action = [&]()
+            {
+                players[j]->startRotation(Player::CLOCKWISE,Player::DOUBLE_ROTATION);
+            };
+            commandQueue.push(command);
+            break;
         }
     }
 }
@@ -110,13 +155,23 @@ void World::validateMoves()
         {
         case GUI::TRANK_CONTROLS::MOVE_SINGLE:
             if(validateAction(players[j], 1))
+            {
                 pendingLocations[j] = players[j]->getTilePos(1);
-//                players[j]->startMovement(Player::SINGLE_MOVE);
+            }
+            else
+            {
+                std::cout << "no movement\n";
+            }
             break;
         case GUI::TRANK_CONTROLS::MOVE_DOUBLE:
             if(validateAction(players[j], 2))
+            {
                 pendingLocations[j] = players[j]->getTilePos(2);
-//                players[j]->startMovement(Player::DOUBLE_MOVE);
+            }
+            else
+            {
+                pendingPlayerCommands[j] = GUI::TRANK_CONTROLS::CHECK_BOX;
+            }
             break;
         case GUI::TRANK_CONTROLS::ROTATE_HALF_CLOCKWISE:
             players[j]->startRotation(Player::Rotation::CLOCKWISE, Player::SINGLE_ROTATION);
@@ -146,11 +201,15 @@ void World::validateMoves()
             {
                 if(pendingPlayerCommands[j] == GUI::TRANK_CONTROLS::MOVE_SINGLE
                         || pendingPlayerCommands[j] == GUI::TRANK_CONTROLS::MOVE_DOUBLE)
+                {
                     pendingPlayerCommands[j] = GUI::TRANK_CONTROLS::CHECK_BOX;
+                }
 
                 if(pendingPlayerCommands[i] == GUI::TRANK_CONTROLS::MOVE_SINGLE
                         || pendingPlayerCommands[i] == GUI::TRANK_CONTROLS::MOVE_DOUBLE)
+                {
                     pendingPlayerCommands[i] = GUI::TRANK_CONTROLS::CHECK_BOX;
+                }
             }
         }
     }
@@ -164,12 +223,12 @@ bool World::validateAction(Player *player, int numMoves)
      */
     for(int j = 1; j <= numMoves; j++)
     {
-        player->getTilePos(j);
+        tilePos = player->getTilePos(j);
         if(tilePos.y < 0 || tilePos.y > mapTileHeight - 1)
             return false;
         if(tilePos.x < 0 || tilePos.x > mapTileWidth - 1)
             return false;
-        if(!map->checkTile(MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth), Category::Type::TILE))
+        if(!map->checkTile(MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth), Category::Type::MOVEMENT_SPACE))
             return false;
     }
 
@@ -284,7 +343,6 @@ void World::buildScene()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::MOVE_DOUBLE;
         playersReady++;
-        std::cout << "Button double move\n";
     });
     trankControls.pack(tmpButton);
     buttonY += 100;
@@ -294,7 +352,6 @@ void World::buildScene()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::MOVE_SINGLE;
         playersReady++;
-        std::cout << "Button single move\n";
     });
     trankControls.pack(tmpButton);
     buttonX += 100;
@@ -304,7 +361,6 @@ void World::buildScene()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::CHECK_BOX;
         playersReady++;
-        std::cout << "Nothing selected\n";
     });
     sendCommandBox.pack(tmpButton);
     buttonX -= 100;
@@ -315,7 +371,6 @@ void World::buildScene()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::ROTATE_FULL;
         playersReady++;
-        std::cout << "Button full rotate\n";
     });
     trankControls.pack(tmpButton);
     buttonX -= 100;
@@ -325,7 +380,6 @@ void World::buildScene()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::ROTATE_HALF_COUNTER;
         playersReady++;
-        std::cout << "Button rotate counter half\n";
     });
     trankControls.pack(tmpButton);
     buttonX += 200;
@@ -335,7 +389,6 @@ void World::buildScene()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::ROTATE_HALF_CLOCKWISE;
         playersReady++;
-        std::cout << "Button rotate clock-wise half\n";
     });
     trankControls.pack(tmpButton);
     buttonX -= 100;
@@ -346,7 +399,6 @@ void World::buildScene()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::FIRE;
         playersReady++;
-        std::cout << "Button FIRE\n";
     });
     trankControls.pack(tmpButton);
 

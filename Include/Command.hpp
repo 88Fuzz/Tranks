@@ -10,7 +10,8 @@
 
 class SceneNode;
 
-typedef std::function<void(SceneNode&, sf::Time)> Action;
+//typedef std::function<void(SceneNode&, sf::Time)> Action;
+typedef std::function<void()> Action;
 struct Command
 {
     Command();

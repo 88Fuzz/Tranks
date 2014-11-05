@@ -81,7 +81,8 @@ bool BoardPiece::checkTile(int pos, Category::Type type)
     if(children.size() < pos)
         return false;
 
-    if(children[pos]->getCategory() == type)
+    if(children[pos]->getCategory() & type)
         return true;
+
     return false;
 }

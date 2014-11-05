@@ -50,6 +50,7 @@ void Player::updateCurrent(sf::Time dt)
             forward = rotationLimit;
             //set forward to a cardinal direction to prevent rounding errors later
             forward = getForwardDirection();
+            std::cout << "DONE ROTATING " << forward << "\n";
         }
         else if(rotationDir < 0 && forward < rotationLimit)
         {
@@ -57,6 +58,7 @@ void Player::updateCurrent(sf::Time dt)
             forward = rotationLimit;
             //set forward to a cardinal direction to prevent rounding errors later
             forward = getForwardDirection();
+            std::cout << "DONE ROTATING " << forward << "\n";
         }
 
         sprite.setRotation(forward);
