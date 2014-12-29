@@ -207,8 +207,7 @@ Player* SceneNode::findAndRemovePlayer()
         if(children[j]->getCategory() == Category::PLAYER)
         {
             player = children[j];
-            //TODO figure out if this should be -1 or not
-            children.erase(children.begin() + j - 1);
+            children.erase(children.begin() + j);
             return (Player *) player;
         }
     }

@@ -1,14 +1,14 @@
 #include <CommandQueue.hpp>
 #include <SceneNode.hpp>
 
-void CommandQueue::push(const Command command)
+void CommandQueue::push(Command *command)
 {
     queue.push(command);
 }
 
-Command CommandQueue::pop()
+Command *CommandQueue::pop()
 {
-    Command command = queue.front();
+    Command *command = queue.front();
     queue.pop();
     return command;
 }

@@ -7,12 +7,12 @@
 class CommandQueue
 {
 public:
-    void push(const Command);
-    Command pop();
+    void push(Command *);
+    Command* pop();
     bool isEmpty() const;
 
 private:
-    std::queue<Command> queue;
+    std::queue<Command *> queue;
 };
 
 #endif

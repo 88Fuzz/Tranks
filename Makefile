@@ -24,7 +24,7 @@ link:
 #	$(CC) $(OBJS) -o $(EXNM) -L$(LIBS) -lsfml-graphics -lsfml-window -lsfml-system
 
 db:
-	$(CC) -g $(SRCS) -I$(INCS) -I$(INCS2) -o $(EXNM) -L$(LIBS) -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
+	$(CC) -g $(SRCS) -I$(INCS) -I$(INCS2) -c
 
 dblink:
 	$(CC) -g $(SRCS) -I$(INCS) -I$(INCS2) -o $(EXNM) -L$(LIBS) -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio

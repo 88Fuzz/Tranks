@@ -31,7 +31,6 @@ public:
     static const int SINGLE_MOVE = 75;
     static const int DOUBLE_MOVE = 150;
 
-    Player();
     Player(int, TextureHolder*);
     virtual ~Player();
     void respawn();
@@ -48,6 +47,7 @@ public:
     void startMovement(int);
     virtual void drawCurrent(sf::RenderTarget& target, sf::RenderStates states) const;
     virtual void updateCurrent(sf::Time);
+    bool isActionExecuting();
 
 private:
     static constexpr float ROTATION_SPEED = 0.13;
@@ -79,6 +79,9 @@ private:
     //Movement variables
     int moveLimit;
     bool moving;
+
+    //true if player is moving, rotating, or shooting
+    bool actionExecuting;
 
     MySprite sprite;
 

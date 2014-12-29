@@ -21,14 +21,15 @@ World::World(sf::RenderWindow* outputTarget, FontHolder* fonts) :
                 worldBounds(0.f, 0.f, worldView.getSize().x, worldView.getSize().y),
                 map(NULL),
                 trankControls(),
-                sendCommandBox()
+                sendCommandBox(),
+                playersReady(0),
+                currState(IDLE)
 {
     sceneTexture.create(window->getSize().x, window->getSize().y);
 
     loadTextures();
 
     numPlayers = 1;
-    playersReady = 0;
     for(int j = 0; j < MapCreator::PLAYER_COUNT; j++)
     {
         players.push_back(new Player(j, &textures));
@@ -52,7 +53,8 @@ World::~World()
 
 void World::update(sf::Time dt)
 {
-    Command command;
+    Command *command;
+    int completed = 0;
     // Scroll the world, reset player velocity
 //	worldView.move(0.f, mScrollSpeed * dt.asSeconds());
 
@@ -69,19 +71,48 @@ void World::update(sf::Time dt)
 
     //TODO un-comment this statement
 //    if(players.size() == pendingPlayerCommands.size())
-    if(playersReady == numPlayers)
+    if(currState == IDLE)
     {
-        validateMoves();
-        queueActions();
-        playersReady = 0;
+        if(playersReady == numPlayers)
+        {
+            validateMoves();
+            queueActions();
+            playersReady = 0;
+            currState = EXECUTE_ACTIONS;
+        }
     }
 
     //TODO figure out how to do this
     while(!commandQueue.isEmpty())
     {
         command = commandQueue.pop();
-        command.action();
+        command->action();
+        delete command;
     }
+
+    //Check if players are finished executing actions
+    if(currState == EXECUTE_ACTIONS)
+    {
+        for(int j = 0; j < numPlayers; j++)
+        {
+            if(!players[j]->isActionExecuting())
+            {
+                completed++;
+            }
+        }
+
+        if(completed == numPlayers)
+        {
+            currState = END_ACTIONS;
+
+            //TODO possibly do something better with end actions
+            trankControls.deselect();
+            sendCommandBox.deselect();
+
+            currState = IDLE;
+        }
+    }
+    //TODO Change this to use variable number of players
 
     // Regular update step, adapt position (correct if outside view)
     sceneGraph.update(dt);
@@ -97,42 +128,71 @@ void World::draw()
 
 void World::queueActions()
 {
+    Command *command;
     for(int j = 0; j < pendingPlayerCommands.size(); j++)
     {
-        Command command;
-        command.category = Category::Type::NONE;
         switch(pendingPlayerCommands[j])
         {
         case GUI::TRANK_CONTROLS::MOVE_SINGLE:
-            command.action = [&]()
+            //colision detection is broken again (moving 2 spaces over something does not work)
+            command = new Command();
+            command->category = Category::Type::NONE;
+            command->action = [=]()
             {
-                players[j]->startMovement(Player::SINGLE_MOVE);
-            };
+                sf::Vector2i tilePos = players[j]->getTilePos();
+                //TODO logging
+                //Remove player from its parent node
+                    if(map->removePlayerChildNode(MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth))==NULL)
+                    std::cerr << "Shit be horribly broken\n";
+
+                //get player's new tilePos, and attach it to the new parent node
+                    tilePos = players[j]->getTilePos(1);
+
+                    map->layerChildNode(players[j],MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth));
+                    players[j]->startMovement(Player::SINGLE_MOVE);
+                };
             commandQueue.push(command);
             break;
         case GUI::TRANK_CONTROLS::MOVE_DOUBLE:
-            command.action = [&]()
+            command = new Command();
+            command->category = Category::Type::NONE;
+            command->action = [=]()
             {
-                players[j]->startMovement(Player::DOUBLE_MOVE);
-            };
+                sf::Vector2i tilePos = players[j]->getTilePos();
+                //TODO logging
+                //Remove player from its parent node
+                    if(map->removePlayerChildNode(MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth))==NULL)
+                    std::cerr << "Shit be horribly broken\n";
+
+                    tilePos = players[j]->getTilePos(2);
+
+                    map->layerChildNode(players[j],MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth));
+                    players[j]->startMovement(Player::DOUBLE_MOVE);
+                };
             commandQueue.push(command);
             break;
         case GUI::TRANK_CONTROLS::ROTATE_HALF_CLOCKWISE:
-            command.action = [&]()
+            command = new Command();
+            command->category = Category::Type::NONE;
+            command->action = [=]()
             {
                 players[j]->startRotation(Player::CLOCKWISE,Player::SINGLE_ROTATION);
             };
             commandQueue.push(command);
             break;
         case GUI::TRANK_CONTROLS::ROTATE_HALF_COUNTER:
-            command.action = [&]()
+            command = new Command();
+            command->category = Category::Type::NONE;
+            command->action = [=]()
             {
                 players[j]->startRotation(Player::COUNTER_CLOCKWISE,Player::SINGLE_ROTATION);
             };
             commandQueue.push(command);
             break;
         case GUI::TRANK_CONTROLS::ROTATE_FULL:
-            command.action = [&]()
+            command = new Command();
+            command->category = Category::Type::NONE;
+            command->action = [=]()
             {
                 players[j]->startRotation(Player::CLOCKWISE,Player::DOUBLE_ROTATION);
             };
@@ -160,7 +220,7 @@ void World::validateMoves()
             }
             else
             {
-                std::cout << "no movement\n";
+                pendingPlayerCommands[j] = GUI::TRANK_CONTROLS::CHECK_BOX;
             }
             break;
         case GUI::TRANK_CONTROLS::MOVE_DOUBLE:
@@ -172,20 +232,6 @@ void World::validateMoves()
             {
                 pendingPlayerCommands[j] = GUI::TRANK_CONTROLS::CHECK_BOX;
             }
-            break;
-        case GUI::TRANK_CONTROLS::ROTATE_HALF_CLOCKWISE:
-            players[j]->startRotation(Player::Rotation::CLOCKWISE, Player::SINGLE_ROTATION);
-            break;
-        case GUI::TRANK_CONTROLS::ROTATE_HALF_COUNTER:
-            players[j]->startRotation(Player::Rotation::COUNTER_CLOCKWISE, Player::SINGLE_ROTATION);
-            break;
-        case GUI::TRANK_CONTROLS::ROTATE_FULL:
-            players[j]->startRotation(Player::Rotation::CLOCKWISE, Player::DOUBLE_ROTATION);
-            break;
-        case GUI::TRANK_CONTROLS::FIRE:
-            break;
-        case GUI::TRANK_CONTROLS::CHECK_BOX:
-        default:
             break;
         }
     }
@@ -286,10 +332,6 @@ void World::handleEvent(const sf::Event* event)
                     ((GUI::Button*) selected)->trigger();
                 else
                     std::cout << "Nothing selected\n";
-
-                //TODO fix this
-                trankControls.deselect();
-                sendCommandBox.deselect();
             }
         }
     }

@@ -33,6 +33,14 @@ public:
 //    CommandQueue* getCommandQueue();
 
 private:
+    enum GameStateEnum
+    {
+        IDLE,
+        START_ACTIONS,
+        EXECUTE_ACTIONS,
+        END_ACTIONS,
+        NUM_GAME_STATES
+    };
     enum Layer
     {
         Background,
@@ -44,9 +52,14 @@ private:
     //TODO change this to the number of players
     int numPlayers;
     int playersReady;
+
+    //number of tiles in the width of the map
     int mapTileWidth;
+
+    //number of tiles in the height of the map
     int mapTileHeight;
 
+    GameStateEnum currState;
     sf::RenderWindow* window;
     sf::RenderTexture sceneTexture;
     sf::View worldView;

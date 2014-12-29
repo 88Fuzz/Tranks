@@ -3,19 +3,6 @@
 #include "Utils.hpp"
 #include <iostream>
 
-/*
- * Used to construct a player with no useful information.
- */
-Player::Player() :
-        SceneNode(Category::PLAYER)
-{
-
-}
-
-Player::~Player()
-{
-}
-
 Player::Player(int playerNum, TextureHolder* textures) :
                 moveLimit(0),
                 forward(0),
@@ -26,7 +13,9 @@ Player::Player(int playerNum, TextureHolder* textures) :
                 moving(false),
                 rotationDir(CLOCKWISE),
                 rotationLimit(0),
-                tileWidth(-1)
+                tileWidth(-1),
+                mapWidth(0),
+                mapHeight(0)
 {
     TextureData* table = initializePlayerData();
     sprite = MySprite(textures->get(table[playerNum].textureId), table[playerNum].textureRect);
@@ -34,6 +23,10 @@ Player::Player(int playerNum, TextureHolder* textures) :
     sprite.setPosition(0, 0);
     //TODO change to vector. yo
     free(table);
+}
+
+Player::~Player()
+{
 }
 
 /*
@@ -50,7 +43,6 @@ void Player::updateCurrent(sf::Time dt)
             forward = rotationLimit;
             //set forward to a cardinal direction to prevent rounding errors later
             forward = getForwardDirection();
-            std::cout << "DONE ROTATING " << forward << "\n";
         }
         else if(rotationDir < 0 && forward < rotationLimit)
         {
@@ -58,7 +50,6 @@ void Player::updateCurrent(sf::Time dt)
             forward = rotationLimit;
             //set forward to a cardinal direction to prevent rounding errors later
             forward = getForwardDirection();
-            std::cout << "DONE ROTATING " << forward << "\n";
         }
 
         sprite.setRotation(forward);
@@ -71,22 +62,34 @@ void Player::updateCurrent(sf::Time dt)
         case Direction::NORTH:
             sprite.move(0, -1 * dt.asMilliseconds() * MOVEMENT_SPEED);
             if(sprite.getPosition().y < moveLimit)
+            {
+                sprite.setPosition(sprite.getPosition().x, moveLimit);
                 moving = false;
+            }
             break;
         case Direction::SOUTH:
             sprite.move(0, dt.asMilliseconds() * MOVEMENT_SPEED);
             if(sprite.getPosition().y > moveLimit)
+            {
+                sprite.setPosition(sprite.getPosition().x, moveLimit);
                 moving = false;
+            }
             break;
         case Direction::EAST:
             sprite.move(dt.asMilliseconds() * MOVEMENT_SPEED, 0);
             if(sprite.getPosition().x > moveLimit)
+            {
+                sprite.setPosition(moveLimit, sprite.getPosition().y);
                 moving = false;
+            }
             break;
         case Direction::WEST:
             sprite.move(-1 * dt.asMilliseconds() * MOVEMENT_SPEED, 0);
             if(sprite.getPosition().x < moveLimit)
+            {
+                sprite.setPosition(moveLimit, sprite.getPosition().y);
                 moving = false;
+            }
             break;
         default:
             //TODO LOGGING'
@@ -277,4 +280,12 @@ sf::Vector2i Player::getTilePos(int numSpaces)
         return sf::Vector2i(tilePos.x - numSpaces, tilePos.y);
     }
     return tilePos;
+}
+
+/*
+ * Returns true if player is moving, rotating, or shooting. Otherwise false
+ */
+bool Player::isActionExecuting()
+{
+    return rotating || moving;
 }
