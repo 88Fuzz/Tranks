@@ -58,6 +58,7 @@ TextureData *initializeBoardPieceData()
  */
 TextureData *initializePlayerData()
 {
+    //TODO change PLAYER_COUNT to something better
     TextureData *data = (TextureData *) malloc(sizeof(TextureData) * MapCreator::PLAYER_COUNT);
     int size = 75;
 
@@ -78,30 +79,30 @@ TextureData *initializeButtonData()
 {
     TextureData *data = (TextureData *) malloc(sizeof(TextureData) * GUI::TRANK_CONTROLS::TRANK_CONTROLS_COUNT);
     int size = 100;
-    int j = 0;
 
     for(int j = 0; j < GUI::TRANK_CONTROLS::TRANK_CONTROLS_COUNT; j++)
     {
         data[j].textureId = Textures::BUTTONS;
         data[j].textureRect = sf::IntRect(j * size, 0, size, 2 * size);
     }
-//    data[GUI::TRANK_CONTROLS::MOVE_SINGLE].textureId = Textures::BUTTONS;
-//    data[GUI::TRANK_CONTROLS::MOVE_SINGLE].textureRect = sf::IntRect(j++ * size, 0, size, 2 * size);
-//
-//    data[GUI::TRANK_CONTROLS::MOVE_DOUBLE].textureId = Textures::BUTTONS;
-//    data[GUI::TRANK_CONTROLS::MOVE_DOUBLE].textureRect = sf::IntRect(j++ * size, 0, size, 2 * size);
-//
-//    data[GUI::TRANK_CONTROLS::ROTATE_HALF_CLOCKWISE].textureId = Textures::BUTTONS;
-//    data[GUI::TRANK_CONTROLS::ROTATE_HALF_CLOCKWISE].textureRect = sf::IntRect(j++ * size, 0, size, 2 * size);
-//
-//    data[GUI::TRANK_CONTROLS::ROTATE_HALF_COUNTER].textureId = Textures::BUTTONS;
-//    data[GUI::TRANK_CONTROLS::ROTATE_HALF_COUNTER].textureRect = sf::IntRect(j++ * size, 0, size, 2 * size);
-//
-//    data[GUI::TRANK_CONTROLS::ROTATE_FULL].textureId = Textures::BUTTONS;
-//    data[GUI::TRANK_CONTROLS::ROTATE_FULL].textureRect = sf::IntRect(j++ * size, 0, size, 2 * size);
-//
-//    data[GUI::TRANK_CONTROLS::FIRE].textureId = Textures::BUTTONS;
-//    data[GUI::TRANK_CONTROLS::FIRE].textureRect = sf::IntRect(j++ * size, 0, size, 2 * size);
 
+    return data;
+}
+
+/*
+ * Initializes array of TextureData for Bullet information.
+ * Remember to free returned array!
+ */
+TextureData *initializeBulletData()
+{
+    //TODO change PLAYER_COUNT to something better
+    TextureData *data = (TextureData *) malloc(sizeof(TextureData) * MapCreator::PLAYER_COUNT);
+    int size = 20;
+
+    for(int j = 0; j < MapCreator::PLAYER_COUNT; j++)
+    {
+        data[j].textureId = Textures::BULLETS;
+        data[j].textureRect = sf::IntRect(j * size, 0, size, size);
+    }
     return data;
 }

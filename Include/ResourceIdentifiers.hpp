@@ -18,6 +18,7 @@ namespace Textures
     {
         BOARD,
         TRANKS,
+        BULLETS,
         BUTTONS
     };
 }

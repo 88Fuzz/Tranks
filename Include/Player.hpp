@@ -58,6 +58,7 @@ private:
     //Current tile position, for fine grained position use sprite
     sf::Vector2i tilePos;
     sf::Vector2i Pos;
+    int playerNumber;
 
     //Map information
     //the width of the map tiles, used to set the appropriate position for the sprite

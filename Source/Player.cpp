@@ -15,7 +15,9 @@ Player::Player(int playerNum, TextureHolder* textures) :
                 rotationLimit(0),
                 tileWidth(-1),
                 mapWidth(0),
-                mapHeight(0)
+                mapHeight(0),
+                playerNumber(playerNum),
+                actionExecuting()
 {
     TextureData* table = initializePlayerData();
     sprite = MySprite(textures->get(table[playerNum].textureId), table[playerNum].textureRect);

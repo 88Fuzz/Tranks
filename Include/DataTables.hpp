@@ -18,5 +18,6 @@ struct TextureData
 TextureData *initializeBoardPieceData();
 TextureData *initializePlayerData();
 TextureData *initializeButtonData();
+TextureData *initializeBulletData();
 
 #endif
