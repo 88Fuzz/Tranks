@@ -5,8 +5,8 @@
 #include <SFML/System/Vector2.hpp>
 
 /*
- * Wrapper around the sf::Sprite class that is mainly used for putting the origin at the center
- * and placing the x & y coordinates based on the left corner
+ * Wrapper around the sf::Sprite class that is mainly used for putting the origin at the center (can rotate about center of sprite)
+ * and placing the x & y coordinates based on the left corner (move sprite based on top left corner)
  */
 class MySprite: public sf::Sprite
 {

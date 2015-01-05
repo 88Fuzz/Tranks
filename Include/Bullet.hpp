@@ -20,7 +20,7 @@ private:
     Player::Direction getForwardDirection();
 
     MySprite sprite;
-    int tileWidth;
+    int tileSize;
     Player::Direction forward;
     sf::Vector2i tilePos;
 };

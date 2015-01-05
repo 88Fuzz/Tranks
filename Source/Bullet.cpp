@@ -4,7 +4,7 @@
 #include <iostream>
 
 Bullet::Bullet(sf::Vector2i pos, int tileSize, Player::Direction direction, int playerNum, TextureHolder *textures) :
-        tileWidth(tileSize), forward(direction)
+        tileSize(tileSize), forward(direction)
 {
     TextureData* table = initializeBulletData();
     sprite = MySprite(textures->get(table[playerNum].textureId), table[playerNum].textureRect);
@@ -29,7 +29,25 @@ void Bullet::setSpawnPos(sf::Vector2i pos, Player::Direction facing)
 {
 //TODO figure out if copy constructors work this way
     tilePos = pos;
-    sprite.setPosition(sf::Vector2f(pos.x * tileWidth, pos.y * tileWidth));
+
+    sf::Vector2f spritePos;
+    float xPos = pos.x * tileSize;
+    float yPos = pos.y * tileSize;
+    float offset = tileSize / 2 - sprite.getWidth()/2;
+
+    switch(getForwardDirection())
+    {
+    case Player::NORTH:
+    case Player::SOUTH:
+        spritePos = sf::Vector2f(xPos + offset, yPos);
+        break;
+    case Player::EAST:
+    case Player::WEST:
+        spritePos = sf::Vector2f(xPos, yPos + offset);
+        break;
+    }
+
+    sprite.setPosition(spritePos);
     forward = facing;
     sprite.setRotation(forward);
 }

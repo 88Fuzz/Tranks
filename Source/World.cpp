@@ -24,7 +24,8 @@ World::World(sf::RenderWindow* outputTarget, FontHolder* fonts) :
                 trankControls(),
                 sendCommandBox(),
                 playersReady(0),
-                currState(IDLE)
+                currState(IDLE),
+                tileSize(0)
 {
     sceneTexture.create(window->getSize().x, window->getSize().y);
 
@@ -207,7 +208,7 @@ void World::queueActions()
                 players[j]->startFire();
                 sf::Vector2i bulletLocation;
                 bulletLocation = players[j]->getTilePos(1);
-                map->layerChildNode(new Bullet(bulletLocation, mapTileWidth, players[j]->getForwardDirection(), j, &textures),
+                map->layerChildNode(new Bullet(bulletLocation, tileSize, players[j]->getForwardDirection(), j, &textures),
                         MapCreator::get1d(bulletLocation.x, bulletLocation.y, mapTileWidth));
             };
             commandQueue.push(command);
@@ -368,6 +369,8 @@ void World::buildScene()
     int buttonX = 1600;
     int buttonY = 200;
 
+    tileSize = mc.getTileWidth();
+
     for(int j = 0; j < players.size(); j++)
     {
         //Set map boarders
@@ -375,7 +378,7 @@ void World::buildScene()
         players[j]->setMapWidth(mapTileWidth);
         players[j]->setMapHeight(mapTileHeight);
         //Set player spawn position to the vector location
-        players[j]->setTileWidth(mc.getTileWidth());
+        players[j]->setTileWidth(tileSize);
         players[j]->setSpawnPos(mc.getPlayerSpawnPos(j), mc.getPlayerSpawnFacing(j));
 
         //The player's spawn is in screen coordinates but in order to place it in the screen graph, it needs

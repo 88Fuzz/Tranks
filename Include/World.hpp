@@ -59,6 +59,9 @@ private:
     //number of tiles in the height of the map
     int mapTileHeight;
 
+    //Pixel length of a tile
+    int tileSize;
+
     GameStateEnum currState;
     sf::RenderWindow* window;
     sf::RenderTexture sceneTexture;

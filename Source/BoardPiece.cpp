@@ -66,6 +66,7 @@ int BoardPiece::swapChildNode(SceneNode *node, int pos)
  */
 int BoardPiece::layerChildNode(SceneNode *node, int pos)
 {
+
     if(children.size() < pos)
         return 0;
 
