@@ -1,5 +1,6 @@
 #include "World.hpp"
 #include "MapCreator.hpp"
+#include "Bullet.hpp"
 #include "Button.hpp"
 #include "ButtonTypes.hpp"
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -143,7 +144,7 @@ void World::queueActions()
                 //TODO logging
                 //Remove player from its parent node
                     if(map->removePlayerChildNode(MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth))==NULL)
-                    std::cerr << "Shit be horribly broken\n";
+                        std::cerr << "Shit be horribly broken\n";
 
                 //get player's new tilePos, and attach it to the new parent node
                     tilePos = players[j]->getTilePos(1);
@@ -195,6 +196,19 @@ void World::queueActions()
             command->action = [=]()
             {
                 players[j]->startRotation(Player::CLOCKWISE,Player::DOUBLE_ROTATION);
+            };
+            commandQueue.push(command);
+            break;
+        case GUI::TRANK_CONTROLS::FIRE:
+            command = new Command();
+            command->category = Category::Type::NONE;
+            command->action = [=]()
+            {
+                players[j]->startFire();
+                sf::Vector2i bulletLocation;
+                bulletLocation = players[j]->getTilePos(1);
+                map->layerChildNode(new Bullet(bulletLocation, mapTileWidth, players[j]->getForwardDirection(), j, &textures),
+                        MapCreator::get1d(bulletLocation.x, bulletLocation.y, mapTileWidth));
             };
             commandQueue.push(command);
             break;
@@ -291,6 +305,7 @@ void World::loadTextures()
     textures.load(Textures::BUTTONS, "Media/Textures/Buttons.png");
     textures.load(Textures::BOARD, "Media/Textures/Board.png");
     textures.load(Textures::TRANKS, "Media/Textures/Tranks.png");
+    textures.load(Textures::BULLETS, "Media/Textures/Bullets.png");
 }
 
 void World::adaptPlayerPosition()

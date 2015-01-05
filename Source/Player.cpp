@@ -291,3 +291,11 @@ bool Player::isActionExecuting()
 {
     return rotating || moving;
 }
+
+/*
+ * Start what is needed to for the fire action
+ */
+void Player::startFire()
+{
+
+}

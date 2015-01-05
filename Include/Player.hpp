@@ -45,6 +45,7 @@ public:
     Player::Direction getForwardDirection();
     void startRotation(Rotation, int);
     void startMovement(int);
+    void startFire();
     virtual void drawCurrent(sf::RenderTarget& target, sf::RenderStates states) const;
     virtual void updateCurrent(sf::Time);
     bool isActionExecuting();
