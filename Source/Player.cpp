@@ -5,17 +5,13 @@
 
 Player::Player(int playerNum, TextureHolder* textures) :
                 moveLimit(0),
-                forward(0),
                 spawnPos(),
-                SceneNode(Category::PLAYER),
-                spawnFacing(NORTH),
+                Moveable(Category::PLAYER, 0, 0, -1, Direction::NORTH),
+                spawnFacing(Direction::NORTH),
                 rotating(false),
                 moving(false),
                 rotationDir(CLOCKWISE),
                 rotationLimit(0),
-                tileWidth(-1),
-                mapWidth(0),
-                mapHeight(0),
                 playerNumber(playerNum),
                 actionExecuting()
 {
@@ -25,10 +21,14 @@ Player::Player(int playerNum, TextureHolder* textures) :
     sprite.setPosition(0, 0);
     //TODO change to vector. yo
     free(table);
+    bullet = new Bullet(playerNum, textures);
+
+    attachChild(bullet);
 }
 
 Player::~Player()
 {
+    delete bullet;
 }
 
 /*
@@ -98,28 +98,19 @@ void Player::updateCurrent(sf::Time dt)
             std::cerr << "forward angle of " << forward << " not found\n";
         }
     }
+
+    //Check if player's bullet is alive or if it has killed anyone
+//    if(!bullet->isAlive())
+//    {
+//        std::cout << "BULLET IS DEAD\n";
+//    }
 }
 
 void Player::drawCurrent(sf::RenderTarget& target, sf::RenderStates states) const
 {
     target.draw(sprite);
-}
-
-/*
- * Tiles should be square so only width is needed
- */
-void Player::setTileWidth(int width)
-{
-    tileWidth = width;
-}
-
-void Player::setMapHeight(int height)
-{
-    mapHeight = height;
-}
-void Player::setMapWidth(int width)
-{
-    mapWidth = width;
+    if(bullet->isAlive())
+        bullet->drawCurrent(target, states);
 }
 
 /*
@@ -129,18 +120,18 @@ void Player::respawn()
 {
 //    tilePos = spawnPos;
     forward = spawnFacing;
-    sprite.setPosition(sf::Vector2f(spawnPos.x * tileWidth, spawnPos.y * tileWidth));
+    sprite.setPosition(sf::Vector2f(spawnPos.x * tileSize, spawnPos.y * tileSize));
 }
 
 /*
  * Used to set the spawn position of the player
  */
-void Player::setSpawnPos(sf::Vector2i pos, Direction facing)
+void Player::setSpawnPos(sf::Vector2i pos, Moveable::Direction facing)
 {
 //TODO figure out if copy constructors work this way
     spawnPos = pos;
     tilePos = pos;
-    sprite.setPosition(sf::Vector2f(pos.x * tileWidth, pos.y * tileWidth));
+    sprite.setPosition(sf::Vector2f(pos.x * tileSize, pos.y * tileSize));
     forward = facing;
     spawnFacing = facing;
     sprite.setRotation(forward);
@@ -220,7 +211,7 @@ int Player::getSpawnPosY()
 //Movement validation will be done at the point when all players have submitted the commands for the next turn
 bool Player::checkValidMove(int spacesMoved)
 {
-    //Check if position is in the bounds of the map
+//Check if position is in the bounds of the map
     switch(getForwardDirection())
     {
     case Direction::NORTH:
@@ -245,19 +236,8 @@ bool Player::checkValidMove(int spacesMoved)
         break;
     }
 
-    //TODO check if space is empty tile
+//TODO check if space is empty tile
     return true;
-}
-
-Player::Direction Player::getForwardDirection()
-{
-    if(mod(forward, Direction::NORTH) == 0)
-        return Direction::NORTH;
-    else if(mod(forward, Direction::SOUTH) == 0)
-        return Direction::SOUTH;
-    else if(mod(forward, Direction::WEST) == 0)
-        return Direction::WEST;
-    return Direction::EAST;
 }
 
 sf::Vector2i Player::getTilePos()
@@ -272,13 +252,13 @@ sf::Vector2i Player::getTilePos(int numSpaces)
 {
     switch(getForwardDirection())
     {
-    case Player::Direction::NORTH:
+    case Direction::NORTH:
         return sf::Vector2i(tilePos.x, tilePos.y - numSpaces);
-    case Player::Direction::SOUTH:
+    case Direction::SOUTH:
         return sf::Vector2i(tilePos.x, tilePos.y + numSpaces);
-    case Player::Direction::EAST:
+    case Direction::EAST:
         return sf::Vector2i(tilePos.x + numSpaces, tilePos.y);
-    case Player::Direction::WEST:
+    case Direction::WEST:
         return sf::Vector2i(tilePos.x - numSpaces, tilePos.y);
     }
     return tilePos;
@@ -297,5 +277,10 @@ bool Player::isActionExecuting()
  */
 void Player::startFire()
 {
+    bullet->setMapHeight(mapHeight);
+    bullet->setMapWidth(mapWidth);
+    bullet->setTileSize(tileSize);
 
+    bullet->resetBounceTotal();
+    bullet->setSpawnPos(getTilePos(1), getForwardDirection());
 }

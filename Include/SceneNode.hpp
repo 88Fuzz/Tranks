@@ -31,6 +31,7 @@ public:
     virtual unsigned int getCategory() const;
 
     virtual sf::FloatRect getBoundingRect() const;
+    virtual bool isAlive();
     virtual bool isDestroyed() const;
     SceneNode* getChildNode(int);
     Player* removePlayerChildNode(int);

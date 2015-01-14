@@ -208,8 +208,9 @@ void World::queueActions()
                 players[j]->startFire();
                 sf::Vector2i bulletLocation;
                 bulletLocation = players[j]->getTilePos(1);
-                map->layerChildNode(new Bullet(bulletLocation, tileSize, players[j]->getForwardDirection(), j, &textures),
-                        MapCreator::get1d(bulletLocation.x, bulletLocation.y, mapTileWidth));
+                players[j]->startFire();
+//                map->layerChildNode(new Bullet(bulletLocation, tileSize, players[j]->getForwardDirection(), j, &textures, mapTileWidth, mapTileHeight),
+//                        MapCreator::get1d(bulletLocation.x, bulletLocation.y, mapTileWidth));
             };
             commandQueue.push(command);
             break;
@@ -219,7 +220,7 @@ void World::queueActions()
 
 void World::validateMoves()
 {
-    Player::Direction facing;
+    Moveable::Direction facing;
     sf::Vector2i tilePos;
     sf::Vector2i pendingLocations[pendingPlayerCommands.size()];
 
@@ -378,7 +379,7 @@ void World::buildScene()
         players[j]->setMapWidth(mapTileWidth);
         players[j]->setMapHeight(mapTileHeight);
         //Set player spawn position to the vector location
-        players[j]->setTileWidth(tileSize);
+        players[j]->setTileSize(tileSize);
         players[j]->setSpawnPos(mc.getPlayerSpawnPos(j), mc.getPlayerSpawnFacing(j));
 
         //The player's spawn is in screen coordinates but in order to place it in the screen graph, it needs

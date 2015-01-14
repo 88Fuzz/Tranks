@@ -1,6 +1,7 @@
 #ifndef __PLAYER_HPP__
 #define __PLAYER_HPP__
-#include "MySprite.hpp"
+#include "Bullet.hpp"
+#include "Moveable.hpp"
 #include "SceneNode.hpp"
 #include "ResourceHolder.hpp"
 #include "ResourceIdentifiers.hpp"
@@ -9,18 +10,9 @@
 /*
  * Each Trank is a player.
  */
-class Player: public SceneNode
+class Player: public Moveable
 {
 public:
-    enum Direction
-    {
-        EAST = 90,
-        SOUTH = 180,
-        WEST = 270,
-        //NORTH is 360 instead of 0 so that it can be used with angle % NORTH == 0 to check direction it is facing
-        NORTH = 360
-    };
-
     enum Rotation
     {
         CLOCKWISE = 1,
@@ -34,15 +26,11 @@ public:
     Player(int, TextureHolder*);
     virtual ~Player();
     void respawn();
-    void setMapHeight(int);
-    void setMapWidth(int);
-    void setTileWidth(int);
     void setSpawnPos(sf::Vector2i, Direction);
     int getSpawnPosX();
     int getSpawnPosY();
     sf::Vector2i getTilePos();
     sf::Vector2i getTilePos(int);
-    Player::Direction getForwardDirection();
     void startRotation(Rotation, int);
     void startMovement(int);
     void startFire();
@@ -58,20 +46,11 @@ private:
     sf::Vector2i spawnPos;
     //Current tile position, for fine grained position use sprite
     sf::Vector2i tilePos;
-    sf::Vector2i Pos;
     int playerNumber;
-
-    //Map information
-    //the width of the map tiles, used to set the appropriate position for the sprite
-    int tileWidth;
-    int mapWidth;
-    int mapHeight;
 
     //Direction trank is facing at spawn
     Direction spawnFacing;
 
-    //Direction trank is facing
-    float forward;
 
     //Rotation variables
     Rotation rotationDir;
@@ -85,9 +64,9 @@ private:
     //true if player is moving, rotating, or shooting
     bool actionExecuting;
 
-    MySprite sprite;
-
     bool checkValidMove(int);
+
+    Bullet *bullet;
 };
 
 #endif

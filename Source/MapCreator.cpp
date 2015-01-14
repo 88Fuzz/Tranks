@@ -368,7 +368,7 @@ void MapCreator::parseSpawn(rapidxml::xml_node<> *node)
     int player = -1;
     int x = -1;
     int y = -1;
-    Player::Direction facing = Player::Direction::NORTH;
+    Moveable::Direction facing = Moveable::Direction::NORTH;
 
     rapidxml::xml_attribute<>* attr = node->first_attribute();
     while(attr != NULL)
@@ -388,13 +388,13 @@ void MapCreator::parseSpawn(rapidxml::xml_node<> *node)
         else if(strcmp(attr->name(), "direction") == 0)
         {
             if(strcmp(attr->value(), "N") == 0)
-                facing = Player::Direction::NORTH;
+                facing = Moveable::Direction::NORTH;
             else if(strcmp(attr->value(), "E") == 0)
-                facing = Player::Direction::EAST;
+                facing = Moveable::Direction::EAST;
             if(strcmp(attr->value(), "S") == 0)
-                facing = Player::Direction::SOUTH;
+                facing = Moveable::Direction::SOUTH;
             if(strcmp(attr->value(), "W") == 0)
-                facing = Player::Direction::WEST;
+                facing = Moveable::Direction::WEST;
 
         }
         else
@@ -549,12 +549,12 @@ void MapCreator::parseDeflect(rapidxml::xml_node<> *node)
     }
 }
 
-void MapCreator::setPlayerSpawnFacing(int playerNum, Player::Direction direction)
+void MapCreator::setPlayerSpawnFacing(int playerNum, Moveable::Direction direction)
 {
     playerSpawnFacing[playerNum] = direction;
 }
 
-Player::Direction MapCreator::getPlayerSpawnFacing(int playerNum)
+Moveable::Direction MapCreator::getPlayerSpawnFacing(int playerNum)
 {
     return playerSpawnFacing[playerNum];
 }

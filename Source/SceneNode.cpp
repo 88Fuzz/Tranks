@@ -93,7 +93,8 @@ void SceneNode::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
     for(std::vector<SceneNode *>::const_iterator it = children.begin(); it != children.end(); it++)
     {
-        g_drawingQ.push(*it);
+        if((*it)->isAlive())
+            g_drawingQ.push(*it);
     }
 
     if(!g_drawingQ.empty())
@@ -103,6 +104,14 @@ void SceneNode::draw(sf::RenderTarget& target, sf::RenderStates states) const
 //drawBoundingRect(target, states);
 }
 
+/*
+ * If sceneNode is alive, it will be added to the drawQ.
+ * Return true if alive, false if not alive
+ */
+bool SceneNode::isAlive()
+{
+    return true;
+}
 void SceneNode::drawCurrent(sf::RenderTarget&, sf::RenderStates) const
 {
 // Do nothing by default

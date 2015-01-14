@@ -26,7 +26,7 @@ public:
     int getTileHeight();
     static int get1d(int, int, int);
     sf::Vector2i getPlayerSpawnPos(int);
-    Player::Direction getPlayerSpawnFacing(int);
+    Moveable::Direction getPlayerSpawnFacing(int);
 
 private:
     int mapWidth;
@@ -36,7 +36,7 @@ private:
     BoardPiece *map;
     TextureHolder *boardTextures;
     sf::Vector2i playerSpawns[PLAYER_COUNT];
-    Player::Direction playerSpawnFacing[PLAYER_COUNT];
+    Moveable::Direction playerSpawnFacing[PLAYER_COUNT];
 
     void parseTree(rapidxml::xml_node<> *);
     void parseBoard(rapidxml::xml_node<> *);
@@ -45,7 +45,7 @@ private:
     void parseFlag(rapidxml::xml_node<> *);
     void parseDeflect(rapidxml::xml_node<> *);
     void setPlayerSpawnPos(int, sf::Vector2i);
-    void setPlayerSpawnFacing(int, Player::Direction);
+    void setPlayerSpawnFacing(int, Moveable::Direction);
 };
 
 #endif
