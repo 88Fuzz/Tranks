@@ -3,6 +3,7 @@
 #include "Moveable.hpp"
 #include "ResourceHolder.hpp"
 #include "ResourceIdentifiers.hpp"
+#include "BoardPiece.hpp"
 #include <SFML/Graphics/RenderTarget.hpp>
 
 /*
@@ -19,6 +20,7 @@ public:
     virtual void updateCurrent(sf::Time);
     void resetBounceTotal();
     virtual bool isAlive();
+    void setMap(BoardPiece *);
 
 private:
     static constexpr float MOVEMENT_SPEED = 0.86;
@@ -33,6 +35,15 @@ private:
 
     //Keep track of how many times the bullet has rotated
     int bounceTotal;
+
+    BoardPiece *map;
+
+    //This is a very, very stupid way of doing this
+    bool tileDeflectFlag;
+    //If tileDeflectFlag is set, increment tileDeflection
+    float tileDeflect;
+    int deflection;
+    int playerNum;
 };
 
 #endif

@@ -4,6 +4,7 @@
 #include "ResourceHolder.hpp"
 #include "ResourceIdentifiers.hpp"
 #include "MySprite.hpp"
+#include "Moveable.hpp"
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 
@@ -13,6 +14,13 @@
 class BoardPiece: public SceneNode
 {
 public:
+    enum DeflectionDirection
+    {
+        NE = 0,
+        SE = 90,
+        SW = 180,
+        NW = -90
+    };
     BoardPiece(Category::Type, TextureHolder*, float, float);
     BoardPiece(Category::Type, TextureHolder*, float, float, float);
     void destroy();
@@ -21,10 +29,18 @@ public:
     float getSpriteHeight();
     int swapChildNode(SceneNode*, int);
     int layerChildNode(SceneNode*, int);
-    bool checkTile(int, Category::Type);
+    BoardPiece* checkTile(int, Category::Type);
+    int getDeflection(Moveable::Direction);
 
 private:
     MySprite sprite;
+    //0 == coming from NORTH
+    //1 == coming from EAST
+    //2 == coming from SOUTH
+    //3 == coming from WEST
+    int deflections[4];
+
+    std::string debug;
 };
 
 #endif

@@ -2,11 +2,20 @@
 #include "DataTables.hpp"
 #include "Utils.hpp"
 #include "MapCreator.hpp"
+#include <stdlib.h>
 #include <iostream>
 
+#define PEEE(x) if(playerNum==0) \
+    x
+
 Bullet::Bullet(int playerNum, TextureHolder *textures) :
-        bounceTotal(BOUNCE_LIMIT + 1),
-        Moveable(Category::PLAYER, 0, 0, -1, Direction::NORTH)
+                bounceTotal(BOUNCE_LIMIT + 1),
+                Moveable(Category::PLAYER, 0, 0, -1, Direction::NORTH),
+                map(NULL),
+                tileDeflect(0),
+                tileDeflectFlag(false),
+                deflection(0),
+                playerNum(playerNum)
 {
     TextureData* table = initializeBulletData();
     sprite = MySprite(textures->get(table[playerNum].textureId), table[playerNum].textureRect);
@@ -80,47 +89,97 @@ void Bullet::updateCurrent(sf::Time dt)
     float movement = dt.asMilliseconds() * MOVEMENT_SPEED;
     sprite.move(xFactor * movement, yFactor * movement);
 
+    //This is stupid
+    if(tileDeflectFlag)
+    {
+        tileDeflect += abs(xFactor * movement + yFactor * movement);
+
+        if(tileDeflect > tileSize / 2)
+        {
+            tileDeflectFlag = false;
+            tileDeflect = 0;
+            rotate(deflection);
+        }
+    }
+
     sf::Vector2f pos = sprite.getPosition();
     sf::Vector2i posI = sf::Vector2i(pos.x, pos.y);
+    sf::Vector2i tmpPos;
     sf::Vector2i posWidthI = sf::Vector2i(pos.x + sprite.getWidth(), pos.y + sprite.getHeight());
+    Direction dir = getForwardDirection();
+    BoardPiece *piece;
 
     posI /= tileSize;
     posWidthI /= tileSize;
+    tmpPos = posI;
 
-    //Override if different, the two should never both be different than the current tilePos
-    if(posWidthI != posI)
-        posI = posWidthI;
+//    PEEE(std::cout << "tilePos " << tilePos.x << " " << tilePos.y << " posI " << posI.x << " " << posI.y << " and posWidthI " << posWidthI.x << " " << posWidthI.y << "\n";)
+
+//Override if different, the two should never both be different than the current tilePos
+    if(posWidthI != tilePos && (dir == Direction::SOUTH || dir == Direction::EAST))
+        tmpPos = posWidthI;
 
     //Bullet has moved out of current tile
-    if(tilePos != posI)
+    if(tilePos != tmpPos)
     {
-        if(posI.x < 0)
+        if(tmpPos.x < 0)
         {
-            posI.x = 0;
+            tmpPos.x = 0;
             rotate(180);
         }
-        else if(posI.x >= getMapWidth())
+        else if(tmpPos.x >= getMapWidth())
         {
-            posI.x = getMapWidth() - 1;
+            tmpPos.x = getMapWidth() - 1;
             rotate(180);
         }
-        else if(posI.y < 0)
+        else if(tmpPos.y < 0)
         {
-            posI.y = 0;
+            tmpPos.y = 0;
             rotate(180);
         }
-        else if(posI.y >= getMapHeight())
+        else if(tmpPos.y >= getMapHeight())
         {
-            posI.y = getMapHeight() - 1;
+            tmpPos.y = getMapHeight() - 1;
             rotate(180);
+        }
+        else if(map->checkTile(MapCreator::get1d(tmpPos.x, tmpPos.y, getMapWidth()), Category::Type::BLOCK) != NULL)
+        {
+            rotate(180);
+        }
+        else if((piece = map->checkTile(MapCreator::get1d(tmpPos.x, tmpPos.y, getMapWidth()), Category::Type::DEFLECTOR))
+                != NULL && !tileDeflectFlag)
+        {
+            if((deflection = piece->getDeflection(getForwardDirection())) == 180)
+            {
+                PEEE(std::cout << "full deflection\n"
+                ;
+                )
+                rotate(deflection); //piece->getDeflection(getForwardDirection()));
+            }
+            else
+            {
+                PEEE(std::cout << "half deflection " << tmpPos.x << " " << tmpPos.y << " " << dir << "\n"
+                ;
+                )
+                tileDeflectFlag = true;
+            }
+        }
+        else if((piece = map->checkTile(MapCreator::get1d(tmpPos.x, tmpPos.y, getMapWidth()), Category::Type::PLAYER))
+                != NULL)
+        {
+            this doesn't work'
+            std::cout << " PLAYER HIS\n";
+            Player * player = (Player *) piece;
+            player->setAlive(false);
+            //Hit Player!
+            if(player->getPlayerNum() != playerNum)
+            {
+                player->addScore(1);
+            }
         }
 
         tilePos = posI;
     }
-//    std::cout << "Current tilePos x " << tilePos.x << " " << tilePos.y << "\n";
-//    std::cout << "\t1d: " << MapCreator::get1d(tilePos.x, tilePos.y, tileSize) << "\n";
-//    std::cout << "new tilePos x " << posI.x << " " << posI.y << "\n";
-//    std::cout << "\t1d: " << MapCreator::get1d(posI.x, posI.y, tileSize) << "\n";
 }
 
 /*
@@ -132,12 +191,16 @@ void Bullet::rotate(int rotation)
 {
     sprite.rotate(rotation);
 
-    bounceTotal += rotation;
+    bounceTotal += abs(rotation);
+
+    PEEE(std::cout << "\trotation " << rotation << " bounceTotal " << bounceTotal << "\n"
+    ;
+    )
 
     switch(getForwardDirection())
     {
-    //TODO there's probably a better way to do this
-    case Direction::NORTH:
+//TODO there's probably a better way to do this
+    case Moveable::Direction::NORTH:
         if(rotation == 90)
         {
             forward = Direction::EAST;
@@ -152,7 +215,7 @@ void Bullet::rotate(int rotation)
         }
         else
         {
-            forward = Direction::EAST;
+            forward = Direction::WEST;
             yFactor = 0;
             xFactor = -1;
         }
@@ -223,4 +286,9 @@ void Bullet::rotate(int rotation)
 bool Bullet::isAlive()
 {
     return bounceTotal <= BOUNCE_LIMIT;
+}
+
+void Bullet::setMap(BoardPiece *currMap)
+{
+    map = currMap;
 }

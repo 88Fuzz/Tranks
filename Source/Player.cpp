@@ -13,7 +13,10 @@ Player::Player(int playerNum, TextureHolder* textures) :
                 rotationDir(CLOCKWISE),
                 rotationLimit(0),
                 playerNumber(playerNum),
-                actionExecuting()
+                actionExecuting(),
+                alive(true),
+                playerNum(playerNum),
+                score(0)
 {
     TextureData* table = initializePlayerData();
     sprite = MySprite(textures->get(table[playerNum].textureId), table[playerNum].textureRect);
@@ -269,7 +272,7 @@ sf::Vector2i Player::getTilePos(int numSpaces)
  */
 bool Player::isActionExecuting()
 {
-    return rotating || moving;
+    return rotating || moving || bullet->isAlive();
 }
 
 /*
@@ -279,8 +282,44 @@ void Player::startFire()
 {
     bullet->setMapHeight(mapHeight);
     bullet->setMapWidth(mapWidth);
+    std::cout << "tileSize " << tileSize << "\n";
     bullet->setTileSize(tileSize);
 
     bullet->resetBounceTotal();
     bullet->setSpawnPos(getTilePos(1), getForwardDirection());
+}
+
+void Player::setMap(BoardPiece *map)
+{
+    bullet->setMap(map);
+}
+
+bool Player::isAlive()
+{
+    return alive;
+}
+
+void Player::setAlive(bool status)
+{
+    alive = status;
+}
+
+void Player::setScore(int newScore)
+{
+    score = newScore;
+}
+
+void Player::addScore(int num)
+{
+    score += num;
+}
+
+int Player::getScore()
+{
+    return score;
+}
+
+int Player::getPlayerNum()
+{
+    return playerNum;
 }

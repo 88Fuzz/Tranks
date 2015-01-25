@@ -136,7 +136,6 @@ void World::queueActions()
         switch(pendingPlayerCommands[j])
         {
         case GUI::TRANK_CONTROLS::MOVE_SINGLE:
-            //colision detection is broken again (moving 2 spaces over something does not work)
             command = new Command();
             command->category = Category::Type::NONE;
             command->action = [=]()
@@ -277,6 +276,11 @@ void World::validateMoves()
     }
 }
 
+/*
+ * Checks if the the player can move numMoves spaces forward.
+ * Returns true if movement is valid, false if not.
+ * Will return false if line of movement is not open (block 1 space away when trying to move 2).
+ */
 bool World::validateAction(Player *player, int numMoves)
 {
     sf::Vector2i tilePos;
@@ -381,6 +385,7 @@ void World::buildScene()
         //Set player spawn position to the vector location
         players[j]->setTileSize(tileSize);
         players[j]->setSpawnPos(mc.getPlayerSpawnPos(j), mc.getPlayerSpawnFacing(j));
+        players[j]->setMap(map);
 
         //The player's spawn is in screen coordinates but in order to place it in the screen graph, it needs
         //the vector position, so get spawn position from mapCreator

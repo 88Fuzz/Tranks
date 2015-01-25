@@ -482,7 +482,7 @@ void MapCreator::parseFlag(rapidxml::xml_node<> *node)
 
 void MapCreator::parseDeflect(rapidxml::xml_node<> *node)
 {
-    char direction = -1;
+    char *direction = NULL;
     int x = -1;
     int y = -1;
     rapidxml::xml_attribute<>* attr = node->first_attribute();
@@ -491,7 +491,7 @@ void MapCreator::parseDeflect(rapidxml::xml_node<> *node)
     {
         if(strcmp(attr->name(), "direction") == 0)
         {
-            direction = *(attr->value());
+            direction = attr->value();
         }
         else if(strcmp(attr->name(), "x") == 0)
         {
@@ -509,39 +509,68 @@ void MapCreator::parseDeflect(rapidxml::xml_node<> *node)
         attr = attr->next_attribute();
     }
 
-    if(x != -1 && y != -1 && direction != -1)
+    if(x != -1 && y != -1 && direction != NULL)
     {
-        switch(direction)
+
+        //originally 'W'
+        if(strcmp(direction, "NE") == 0)
         {
-        case 'N':
-            //TODO error check
-            std::cout << "WHAT THE FUCK: " << tileWidth << "\n";
-            map->swapChildNode(
-                    new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, 90.0),
-                    MapCreator::get1d(x, y, mapWidth));
-            break;
-        case 'S':
-            //TODO error check
-            map->swapChildNode(
-                    new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, -90.0),
-                    MapCreator::get1d(x, y, mapWidth));
-            break;
-        case 'E':
-            //TODO error check
-            map->swapChildNode(
-                    new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, 180.0),
-                    MapCreator::get1d(x, y, mapWidth));
-            break;
-        case 'W':
-            //TODO error check
             map->swapChildNode(new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight),
                     MapCreator::get1d(x, y, mapWidth));
-            break;
-        default:
-            //TODO LOGGGGGGGGS
-            std::cerr << "Unknown player count\n";
-
         }
+        //originally 'N'
+        else if(strcmp(direction, "SE") == 0)
+        {
+            map->swapChildNode(
+                    new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, BoardPiece::DeflectionDirection::SE),
+                    MapCreator::get1d(x, y, mapWidth));
+        }
+        //originally 'E'
+        else if(strcmp(direction, "SW") == 0)
+        {
+            map->swapChildNode(
+                    new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, BoardPiece::DeflectionDirection::SW),
+                    MapCreator::get1d(x, y, mapWidth));
+        }
+        //originally 'S', currently "NW"
+        else
+        {
+            map->swapChildNode(
+                    new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, BoardPiece::DeflectionDirection::NW),
+                    MapCreator::get1d(x, y, mapWidth));
+        }
+        /*switch(direction)
+         {
+         case 'N':
+         //TODO error check
+         std::cout << "WHAT THE FUCK: " << tileWidth << "\n";
+         map->swapChildNode(
+         new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, 90.0),
+         MapCreator::get1d(x, y, mapWidth));
+         break;
+         case 'S':
+         //TODO error check
+         map->swapChildNode(
+         new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, -90.0),
+         MapCreator::get1d(x, y, mapWidth));
+         break;
+         case 'E':
+         //TODO error check
+         map->swapChildNode(
+         new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, 180.0),
+         MapCreator::get1d(x, y, mapWidth));
+         break;
+         case 'W':
+         //TODO error check
+         map->swapChildNode(new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight),
+         MapCreator::get1d(x, y, mapWidth));
+         break;
+         default:
+         //TODO LOGGGGGGGGS
+         std::cerr << "Unknown player count\n";
+
+         }
+         */
     }
     else
     {
@@ -595,6 +624,9 @@ int MapCreator::getHeight()
     return mapHeight;
 }
 
+/*
+ * Take the 2d coordiates and return a 1d coordinate. Width should be the number of tiles in the map on the width
+ */
 int MapCreator::get1d(int x, int y, int width)
 {
     return width * y + x;

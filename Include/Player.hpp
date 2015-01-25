@@ -5,6 +5,7 @@
 #include "SceneNode.hpp"
 #include "ResourceHolder.hpp"
 #include "ResourceIdentifiers.hpp"
+#include "BoardPiece.hpp"
 #include <SFML/Graphics/RenderTarget.hpp>
 
 /*
@@ -37,6 +38,13 @@ public:
     virtual void drawCurrent(sf::RenderTarget& target, sf::RenderStates states) const;
     virtual void updateCurrent(sf::Time);
     bool isActionExecuting();
+    void setMap(BoardPiece *);
+    virtual bool isAlive();
+    void setAlive(bool);
+    void setScore(int);
+    void addScore(int);
+    int getScore();
+    int getPlayerNum();
 
 private:
     static constexpr float ROTATION_SPEED = 0.13;
@@ -65,8 +73,11 @@ private:
     bool actionExecuting;
 
     bool checkValidMove(int);
+    bool alive;
 
     Bullet *bullet;
+    int playerNum;
+    int score;
 };
 
 #endif

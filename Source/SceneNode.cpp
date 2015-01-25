@@ -67,7 +67,8 @@ void SceneNode::updateChildren(sf::Time dt)
 {
     for(std::vector<SceneNode *>::iterator it = children.begin(); it != children.end(); it++)
     {
-        (*it)->update(dt);
+        if((*it)->isAlive())
+            (*it)->update(dt);
     }
 }
 
