@@ -118,20 +118,6 @@ int BoardPiece::layerChildNode(SceneNode *node, int pos)
 }
 
 /*
- * returns BoardPiece if child pos is of type type, else NULL
- */
-BoardPiece* BoardPiece::checkTile(int pos, Category::Type type)
-{
-    if(children.size() < pos)
-        return NULL;
-
-    if(children[pos]->getCategory() & type)
-        return (BoardPiece *) children[pos];
-
-    return NULL;
-}
-
-/*
  * Given direction an object is moving (forward), return degrees object has been deflected
  */
 int BoardPiece::getDeflection(Moveable::Direction forward)

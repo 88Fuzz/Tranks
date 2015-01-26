@@ -138,6 +138,10 @@ void Player::setSpawnPos(sf::Vector2i pos, Moveable::Direction facing)
     forward = facing;
     spawnFacing = facing;
     sprite.setRotation(forward);
+    if(playerNum==0)
+    {
+        std::cout << "spawn pos " << tilePos.x << " " << tilePos.y << "\n";
+    }
 }
 
 /*

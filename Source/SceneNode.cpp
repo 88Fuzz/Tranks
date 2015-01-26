@@ -67,8 +67,7 @@ void SceneNode::updateChildren(sf::Time dt)
 {
     for(std::vector<SceneNode *>::iterator it = children.begin(); it != children.end(); it++)
     {
-        if((*it)->isAlive())
-            (*it)->update(dt);
+        (*it)->update(dt);
     }
 }
 
@@ -207,7 +206,7 @@ Player* SceneNode::removePlayerChildNode(int pos)
 }
 
 /*
- * returns any player at node, if none is present, return null
+ * returns any player at node. Will remove player from node. If none is present, return null
  */
 Player* SceneNode::findAndRemovePlayer()
 {
@@ -222,4 +221,41 @@ Player* SceneNode::findAndRemovePlayer()
         }
     }
     return NULL;
+}
+
+/*
+ * Finds any player at node, return reference if found. Else return null
+ */
+SceneNode* SceneNode::findPlayer()
+{
+    for(int j = 0; j < children.size(); j++)
+    {
+        if(children[j]->getCategory() == Category::PLAYER)
+        {
+            return children[j];
+        }
+    }
+    return NULL;
+}
+
+/*
+ * returns BoardPiece if child pos is of type type, else NULL
+ */
+SceneNode* SceneNode::getChildNode(int pos, Category::Type type)
+{
+    if(children.size() < pos)
+        return NULL;
+
+    if(children[pos]->getCategory() & type)
+        return children[pos];
+
+    return children[pos]->getChildNode(pos, type);
+}
+
+SceneNode* SceneNode::getChildNode(int pos, Category::Type type, int layer)
+{
+    if(children.size() < pos)
+        return NULL;
+
+    return children[pos]->findPlayer();
 }

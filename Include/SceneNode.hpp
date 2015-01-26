@@ -34,6 +34,8 @@ public:
     virtual bool isAlive();
     virtual bool isDestroyed() const;
     SceneNode* getChildNode(int);
+    SceneNode* getChildNode(int, Category::Type);
+    SceneNode* getChildNode(int, Category::Type, int);
     Player* removePlayerChildNode(int);
 
 protected:
@@ -51,6 +53,7 @@ private:
     void drawChildren(sf::RenderTarget&, sf::RenderStates) const;
     void drawBoundingRect(sf::RenderTarget&, sf::RenderStates) const;
     Player* findAndRemovePlayer();
+    SceneNode* findPlayer();
 
     Category::Type type;
 };

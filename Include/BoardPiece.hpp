@@ -29,7 +29,6 @@ public:
     float getSpriteHeight();
     int swapChildNode(SceneNode*, int);
     int layerChildNode(SceneNode*, int);
-    BoardPiece* checkTile(int, Category::Type);
     int getDeflection(Moveable::Direction);
 
 private:

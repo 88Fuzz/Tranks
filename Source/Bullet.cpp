@@ -142,11 +142,11 @@ void Bullet::updateCurrent(sf::Time dt)
             tmpPos.y = getMapHeight() - 1;
             rotate(180);
         }
-        else if(map->checkTile(MapCreator::get1d(tmpPos.x, tmpPos.y, getMapWidth()), Category::Type::BLOCK) != NULL)
+        else if(map->getChildNode(MapCreator::get1d(tmpPos.x, tmpPos.y, getMapWidth()), Category::Type::BLOCK) != NULL)
         {
             rotate(180);
         }
-        else if((piece = map->checkTile(MapCreator::get1d(tmpPos.x, tmpPos.y, getMapWidth()), Category::Type::DEFLECTOR))
+        else if((piece = (BoardPiece *) map->getChildNode(MapCreator::get1d(tmpPos.x, tmpPos.y, getMapWidth()), Category::Type::DEFLECTOR))
                 != NULL && !tileDeflectFlag)
         {
             if((deflection = piece->getDeflection(getForwardDirection())) == 180)
@@ -164,17 +164,19 @@ void Bullet::updateCurrent(sf::Time dt)
                 tileDeflectFlag = true;
             }
         }
-        else if((piece = map->checkTile(MapCreator::get1d(tmpPos.x, tmpPos.y, getMapWidth()), Category::Type::PLAYER))
+        else if((piece = (BoardPiece *)map->getChildNode(MapCreator::get1d(tmpPos.x, tmpPos.y, getMapWidth()), Category::Type::PLAYER, 1))
                 != NULL)
         {
-            this doesn't work'
-            std::cout << " PLAYER HIS\n";
             Player * player = (Player *) piece;
-            player->setAlive(false);
-            //Hit Player!
-            if(player->getPlayerNum() != playerNum)
+            if(player->isAlive())
             {
-                player->addScore(1);
+                player->setAlive(false);
+                rotate(BOUNCE_LIMIT + 1);
+                //Hit Player!
+                if(player->getPlayerNum() != playerNum)
+                {
+                    player->addScore(1);
+                }
             }
         }
 
@@ -193,9 +195,7 @@ void Bullet::rotate(int rotation)
 
     bounceTotal += abs(rotation);
 
-    PEEE(std::cout << "\trotation " << rotation << " bounceTotal " << bounceTotal << "\n"
-    ;
-    )
+    PEEE(std::cout << "\trotation " << rotation << " bounceTotal " << bounceTotal << "\n";)
 
     switch(getForwardDirection())
     {

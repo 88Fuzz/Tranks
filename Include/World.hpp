@@ -37,7 +37,8 @@ private:
     {
         IDLE,
         START_ACTIONS,
-        EXECUTE_ACTIONS,
+        MOVE_ACTIONS,
+        SHOOT_ACTIONS,
         END_ACTIONS,
         NUM_GAME_STATES
     };
@@ -95,6 +96,7 @@ private:
     sf::FloatRect getViewBounds() const;
     sf::FloatRect getBattlefieldBounds() const;
     bool validateAction(Player *, int);
+    void generatePlayerMoves();
 };
 
 #endif

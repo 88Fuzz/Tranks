@@ -5,6 +5,7 @@
 #include "ButtonTypes.hpp"
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <algorithm>
+#include <stdlib.h>
 #include <cmath>
 #include <limits>
 #include <iostream>
@@ -31,7 +32,8 @@ World::World(sf::RenderWindow* outputTarget, FontHolder* fonts) :
 
     loadTextures();
 
-    numPlayers = 1;
+    //TODO make numPlayers variable
+    numPlayers = 4;
     for(int j = 0; j < MapCreator::PLAYER_COUNT; j++)
     {
         players.push_back(new Player(j, &textures));
@@ -80,7 +82,7 @@ void World::update(sf::Time dt)
             validateMoves();
             queueActions();
             playersReady = 0;
-            currState = EXECUTE_ACTIONS;
+            currState = MOVE_ACTIONS;
         }
     }
 
@@ -93,7 +95,7 @@ void World::update(sf::Time dt)
     }
 
     //Check if players are finished executing actions
-    if(currState == EXECUTE_ACTIONS)
+    if(currState == MOVE_ACTIONS || currState == SHOOT_ACTIONS)
     {
         for(int j = 0; j < numPlayers; j++)
         {
@@ -105,14 +107,20 @@ void World::update(sf::Time dt)
 
         if(completed == numPlayers)
         {
-            currState = END_ACTIONS;
+            if(currState==MOVE_ACTIONS)
+                currState=SHOOT_ACTIONS;
+            else
+                currState=END_ACTIONS;
+        }
+    }
 
+    if(currState == END_ACTIONS)
+    {
             //TODO possibly do something better with end actions
             trankControls.deselect();
             sendCommandBox.deselect();
 
             currState = IDLE;
-        }
     }
     //TODO Change this to use variable number of players
 
@@ -208,8 +216,6 @@ void World::queueActions()
                 sf::Vector2i bulletLocation;
                 bulletLocation = players[j]->getTilePos(1);
                 players[j]->startFire();
-//                map->layerChildNode(new Bullet(bulletLocation, tileSize, players[j]->getForwardDirection(), j, &textures, mapTileWidth, mapTileHeight),
-//                        MapCreator::get1d(bulletLocation.x, bulletLocation.y, mapTileWidth));
             };
             commandQueue.push(command);
             break;
@@ -294,7 +300,7 @@ bool World::validateAction(Player *player, int numMoves)
             return false;
         if(tilePos.x < 0 || tilePos.x > mapTileWidth - 1)
             return false;
-        if(!map->checkTile(MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth), Category::Type::MOVEMENT_SPACE))
+        if(map->getChildNode(MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth), Category::Type::MOVEMENT_SPACE) == NULL)
             return false;
     }
 
@@ -387,6 +393,11 @@ void World::buildScene()
         players[j]->setSpawnPos(mc.getPlayerSpawnPos(j), mc.getPlayerSpawnFacing(j));
         players[j]->setMap(map);
 
+
+        if(j==0)
+            std::cout << "attaching first play to tile " << mc.getPlayerSpawnPos(0).x << " " << mc.getPlayerSpawnPos(0).y << " " << mapTileWidth << " " << MapCreator::get1d(mc.getPlayerSpawnPos(0).x, mc.getPlayerSpawnPos(0).y, mapTileWidth) << "\n";
+
+
         //The player's spawn is in screen coordinates but in order to place it in the screen graph, it needs
         //the vector position, so get spawn position from mapCreator
         if(!map->layerChildNode(players[j],
@@ -394,14 +405,6 @@ void World::buildScene()
             std::cout << "you dun fuck up\n";
 //        map.layerChildNode(&players[j], mc.get1d(players[j].getSpawnPositionX(), players[j].getSpawnPositionY()));
     }
-//    players[0]->startRotation(Player::Direction::CLOCKWISE, Player::SINGLE_ROTATION);
-//    players[0]->startMovement(Player::SINGLE_MOVE);
-//    players[1]->startRotation(Player::Rotation::CLOCKWISE, Player::SINGLE_ROTATION);
-//    players[1]->startMovement(Player::SINGLE_MOVE);
-//    players[2]->startRotation(Player::Direction::COUNTER_CLOCKWISE, Player::SINGLE_ROTATION);
-//    players[2]->startMovement(Player::SINGLE_MOVE);
-//    players[3]->startRotation(Player::Rotation::COUNTER_CLOCKWISE, Player::DOUBLE_ROTATION);
-//    players[3]->startMovement(Player::SINGLE_MOVE);
 
     //Button initialization
     GUI::Button *tmpButton = new GUI::Button(tmpContext, GUI::TRANK_CONTROLS::MOVE_DOUBLE, buttonX, buttonY, 100, 100);
@@ -437,6 +440,7 @@ void World::buildScene()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::ROTATE_FULL;
         playersReady++;
+        generatePlayerMoves();
     });
     trankControls.pack(tmpButton);
     buttonX -= 100;
@@ -446,6 +450,7 @@ void World::buildScene()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::ROTATE_HALF_COUNTER;
         playersReady++;
+        generatePlayerMoves();
     });
     trankControls.pack(tmpButton);
     buttonX += 200;
@@ -455,6 +460,7 @@ void World::buildScene()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::ROTATE_HALF_CLOCKWISE;
         playersReady++;
+        generatePlayerMoves();
     });
     trankControls.pack(tmpButton);
     buttonX -= 100;
@@ -465,6 +471,7 @@ void World::buildScene()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::FIRE;
         playersReady++;
+        generatePlayerMoves();
     });
     trankControls.pack(tmpButton);
 
@@ -541,4 +548,23 @@ sf::FloatRect World::getBattlefieldBounds() const
     bounds.height += 100.f;
 
     return bounds;
+}
+
+/*
+ * Used to fill player 1-3 commands with a random direction movement
+ */
+void World::generatePlayerMoves()
+{
+    for(int j=1; j<numPlayers; j++)
+    {
+        int randNum = rand()%6;
+
+        //If 5 is selected, the command is shoot, don't let computers shoot
+        if(randNum==5)
+            randNum=6;
+
+        GUI::TRANK_CONTROLS command = static_cast<GUI::TRANK_CONTROLS>(randNum);
+        pendingPlayerCommands[j] = command;
+        playersReady++;
+    }
 }
