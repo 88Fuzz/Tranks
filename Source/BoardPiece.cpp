@@ -122,7 +122,6 @@ int BoardPiece::layerChildNode(SceneNode *node, int pos)
  */
 int BoardPiece::getDeflection(Moveable::Direction forward)
 {
-    std::cout << "asking for forward " << debug << " ";
     switch(forward)
     {
     case Moveable::Direction::NORTH:

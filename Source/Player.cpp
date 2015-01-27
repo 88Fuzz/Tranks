@@ -286,7 +286,6 @@ void Player::startFire()
 {
     bullet->setMapHeight(mapHeight);
     bullet->setMapWidth(mapWidth);
-    std::cout << "tileSize " << tileSize << "\n";
     bullet->setTileSize(tileSize);
 
     bullet->resetBounceTotal();

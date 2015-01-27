@@ -87,7 +87,8 @@ private:
 
     void buildScene();
     void validateMoves();
-    void queueActions();
+    void queueMovementActions();
+    void queueShootActions();
 //    void addEnemies();
 //    void addEnemy(Aircraft::Type type, float relX, float relY);
 //    void spawnEnemies();

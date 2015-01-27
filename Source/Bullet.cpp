@@ -85,6 +85,10 @@ void Bullet::drawCurrent(sf::RenderTarget& target, sf::RenderStates states) cons
 
 void Bullet::updateCurrent(sf::Time dt)
 {
+    //Do nothing is bullet is not alive
+    if(!isAlive())
+        return;
+
     //TODO this will break when rotation and zooming
     float movement = dt.asMilliseconds() * MOVEMENT_SPEED;
     sprite.move(xFactor * movement, yFactor * movement);
@@ -151,16 +155,10 @@ void Bullet::updateCurrent(sf::Time dt)
         {
             if((deflection = piece->getDeflection(getForwardDirection())) == 180)
             {
-                PEEE(std::cout << "full deflection\n"
-                ;
-                )
                 rotate(deflection); //piece->getDeflection(getForwardDirection()));
             }
             else
             {
-                PEEE(std::cout << "half deflection " << tmpPos.x << " " << tmpPos.y << " " << dir << "\n"
-                ;
-                )
                 tileDeflectFlag = true;
             }
         }
@@ -194,8 +192,6 @@ void Bullet::rotate(int rotation)
     sprite.rotate(rotation);
 
     bounceTotal += abs(rotation);
-
-    PEEE(std::cout << "\trotation " << rotation << " bounceTotal " << bounceTotal << "\n";)
 
     switch(getForwardDirection())
     {

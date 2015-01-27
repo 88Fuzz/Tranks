@@ -80,7 +80,7 @@ void World::update(sf::Time dt)
         if(playersReady == numPlayers)
         {
             validateMoves();
-            queueActions();
+            queueMovementActions();
             playersReady = 0;
             currState = MOVE_ACTIONS;
         }
@@ -108,7 +108,10 @@ void World::update(sf::Time dt)
         if(completed == numPlayers)
         {
             if(currState==MOVE_ACTIONS)
+            {
                 currState=SHOOT_ACTIONS;
+                queueShootActions();
+            }
             else
                 currState=END_ACTIONS;
         }
@@ -136,7 +139,33 @@ void World::draw()
     window->draw(sendCommandBox);
 }
 
-void World::queueActions()
+void World::queueShootActions()
+{
+    Command *command;
+    for(int j = 0; j < pendingPlayerCommands.size(); j++)
+    {
+
+        if(pendingPlayerCommands[j]==GUI::TRANK_CONTROLS::FIRE)
+        {
+            command = new Command();
+            command->category = Category::Type::NONE;
+            command->action = [=]()
+            {
+                players[j]->startFire();
+                sf::Vector2i bulletLocation;
+                bulletLocation = players[j]->getTilePos(1);
+                players[j]->startFire();
+            };
+            commandQueue.push(command);
+            break;
+        }
+    }
+}
+
+/*
+ * Adds all movements from players to the command queue
+ */
+void World::queueMovementActions()
 {
     Command *command;
     for(int j = 0; j < pendingPlayerCommands.size(); j++)
@@ -204,18 +233,6 @@ void World::queueActions()
             command->action = [=]()
             {
                 players[j]->startRotation(Player::CLOCKWISE,Player::DOUBLE_ROTATION);
-            };
-            commandQueue.push(command);
-            break;
-        case GUI::TRANK_CONTROLS::FIRE:
-            command = new Command();
-            command->category = Category::Type::NONE;
-            command->action = [=]()
-            {
-                players[j]->startFire();
-                sf::Vector2i bulletLocation;
-                bulletLocation = players[j]->getTilePos(1);
-                players[j]->startFire();
             };
             commandQueue.push(command);
             break;
@@ -394,10 +411,6 @@ void World::buildScene()
         players[j]->setMap(map);
 
 
-        if(j==0)
-            std::cout << "attaching first play to tile " << mc.getPlayerSpawnPos(0).x << " " << mc.getPlayerSpawnPos(0).y << " " << mapTileWidth << " " << MapCreator::get1d(mc.getPlayerSpawnPos(0).x, mc.getPlayerSpawnPos(0).y, mapTileWidth) << "\n";
-
-
         //The player's spawn is in screen coordinates but in order to place it in the screen graph, it needs
         //the vector position, so get spawn position from mapCreator
         if(!map->layerChildNode(players[j],
@@ -412,6 +425,7 @@ void World::buildScene()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::MOVE_DOUBLE;
         playersReady++;
+        generatePlayerMoves();
     });
     trankControls.pack(tmpButton);
     buttonY += 100;
@@ -421,6 +435,7 @@ void World::buildScene()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::MOVE_SINGLE;
         playersReady++;
+        generatePlayerMoves();
     });
     trankControls.pack(tmpButton);
     buttonX += 100;
@@ -430,6 +445,7 @@ void World::buildScene()
     {
         pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::CHECK_BOX;
         playersReady++;
+        generatePlayerMoves();
     });
     sendCommandBox.pack(tmpButton);
     buttonX -= 100;
