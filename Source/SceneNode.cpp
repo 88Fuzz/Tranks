@@ -243,7 +243,7 @@ SceneNode* SceneNode::findPlayer()
  */
 SceneNode* SceneNode::getChildNode(int pos, Category::Type type)
 {
-    if(children.size() < pos)
+    if(children.size() <= pos)
         return NULL;
 
     if(children[pos]->getCategory() & type)

@@ -32,6 +32,7 @@ public:
     int getSpawnPosY();
     sf::Vector2i getTilePos();
     sf::Vector2i getTilePos(int);
+    sf::Vector2i getTileCorrectedPos(int);
     void startRotation(Rotation, int);
     void startMovement(int);
     void startFire();
@@ -45,10 +46,12 @@ public:
     void addScore(int);
     int getScore();
     int getPlayerNum();
+    void incrementDeathClock();
 
 private:
     static constexpr float ROTATION_SPEED = 0.13;
     static constexpr float MOVEMENT_SPEED = 0.13;
+    const static int RESPAWN_LIMIT = 1;
 
     //Tile position of spawn
     sf::Vector2i spawnPos;
@@ -78,6 +81,9 @@ private:
     Bullet *bullet;
     int playerNum;
     int score;
+
+    //The amount of turns player has been dead
+    int deathRespawnCount;
 };
 
 #endif

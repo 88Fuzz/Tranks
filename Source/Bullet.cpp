@@ -43,7 +43,6 @@ void Bullet::resetBounceTotal()
  */
 void Bullet::setSpawnPos(sf::Vector2i pos, Direction facing)
 {
-//TODO figure out if copy constructors work this way
     tilePos = pos;
 
     sf::Vector2f spritePos;
@@ -53,7 +52,7 @@ void Bullet::setSpawnPos(sf::Vector2i pos, Direction facing)
 
     xFactor = 0;
     yFactor = 0;
-    switch(getForwardDirection())
+    switch(facing)
     {
     case NORTH:
         yFactor = -1;
@@ -76,6 +75,7 @@ void Bullet::setSpawnPos(sf::Vector2i pos, Direction facing)
     sprite.setPosition(spritePos);
     forward = facing;
     sprite.setRotation(forward);
+    checkTileMovement(tilePos);
 }
 
 void Bullet::drawCurrent(sf::RenderTarget& target, sf::RenderStates states) const
@@ -111,13 +111,10 @@ void Bullet::updateCurrent(sf::Time dt)
     sf::Vector2i tmpPos;
     sf::Vector2i posWidthI = sf::Vector2i(pos.x + sprite.getWidth(), pos.y + sprite.getHeight());
     Direction dir = getForwardDirection();
-    BoardPiece *piece;
 
     posI /= tileSize;
     posWidthI /= tileSize;
     tmpPos = posI;
-
-//    PEEE(std::cout << "tilePos " << tilePos.x << " " << tilePos.y << " posI " << posI.x << " " << posI.y << " and posWidthI " << posWidthI.x << " " << posWidthI.y << "\n";)
 
 //Override if different, the two should never both be different than the current tilePos
     if(posWidthI != tilePos && (dir == Direction::SOUTH || dir == Direction::EAST))
@@ -126,59 +123,69 @@ void Bullet::updateCurrent(sf::Time dt)
     //Bullet has moved out of current tile
     if(tilePos != tmpPos)
     {
-        if(tmpPos.x < 0)
-        {
-            tmpPos.x = 0;
-            rotate(180);
-        }
-        else if(tmpPos.x >= getMapWidth())
-        {
-            tmpPos.x = getMapWidth() - 1;
-            rotate(180);
-        }
-        else if(tmpPos.y < 0)
-        {
-            tmpPos.y = 0;
-            rotate(180);
-        }
-        else if(tmpPos.y >= getMapHeight())
-        {
-            tmpPos.y = getMapHeight() - 1;
-            rotate(180);
-        }
-        else if(map->getChildNode(MapCreator::get1d(tmpPos.x, tmpPos.y, getMapWidth()), Category::Type::BLOCK) != NULL)
-        {
-            rotate(180);
-        }
-        else if((piece = (BoardPiece *) map->getChildNode(MapCreator::get1d(tmpPos.x, tmpPos.y, getMapWidth()), Category::Type::DEFLECTOR))
-                != NULL && !tileDeflectFlag)
-        {
-            if((deflection = piece->getDeflection(getForwardDirection())) == 180)
-            {
-                rotate(deflection); //piece->getDeflection(getForwardDirection()));
-            }
-            else
-            {
-                tileDeflectFlag = true;
-            }
-        }
-        else if((piece = (BoardPiece *)map->getChildNode(MapCreator::get1d(tmpPos.x, tmpPos.y, getMapWidth()), Category::Type::PLAYER, 1))
-                != NULL)
-        {
-            Player * player = (Player *) piece;
-            if(player->isAlive())
-            {
-                player->setAlive(false);
-                rotate(BOUNCE_LIMIT + 1);
-                //Hit Player!
-                if(player->getPlayerNum() != playerNum)
-                {
-                    player->addScore(1);
-                }
-            }
-        }
-
+        checkTileMovement(tmpPos);
         tilePos = posI;
+    }
+}
+
+/*
+ * Given pos, check what type of piece it is and move the bullet according to what it is
+ * switch(tileType)
+ * emptyTile: do nothing
+ * edge: rotate full 180
+ * deflect: rotate 180 or 90
+ */
+void Bullet::checkTileMovement(sf::Vector2i pos)
+{
+    BoardPiece *piece;
+
+    if(pos.x < 0)
+    {
+        rotate(180);
+    }
+    else if(pos.x >= getMapWidth())
+    {
+        rotate(180);
+    }
+    else if(pos.y < 0)
+    {
+        rotate(180);
+    }
+    else if(pos.y >= getMapHeight())
+    {
+        rotate(180);
+    }
+    else if(map->getChildNode(MapCreator::get1d(pos.x, pos.y, getMapWidth()), Category::Type::BLOCK) != NULL)
+    {
+        rotate(180);
+    }
+    else if((piece = (BoardPiece *) map->getChildNode(MapCreator::get1d(pos.x, pos.y, getMapWidth()),
+            Category::Type::DEFLECTOR)) != NULL && !tileDeflectFlag)
+    {
+        if((deflection = piece->getDeflection(getForwardDirection())) == 180)
+        {
+            rotate(deflection); //piece->getDeflection(getForwardDirection()));
+        }
+        else
+        {
+            tileDeflectFlag = true;
+        }
+    }
+    else if((piece = (BoardPiece *) map->getChildNode(MapCreator::get1d(pos.x, pos.y, getMapWidth()),
+            Category::Type::PLAYER, 1)) != NULL)
+    {
+        Player * player = (Player *) piece;
+
+        //Hit Player!
+        if(player->isAlive())
+        {
+            player->setAlive(false);
+            rotate(BOUNCE_LIMIT + 1);
+            if(player->getPlayerNum() != playerNum)
+            {
+                player->addScore(1);
+            }
+        }
     }
 }
 

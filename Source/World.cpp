@@ -99,7 +99,7 @@ void World::update(sf::Time dt)
     {
         for(int j = 0; j < numPlayers; j++)
         {
-            if(!players[j]->isActionExecuting())
+            if(!players[j]->isActionExecuting() || !players[j]->isAlive())
             {
                 completed++;
             }
@@ -119,11 +119,15 @@ void World::update(sf::Time dt)
 
     if(currState == END_ACTIONS)
     {
-            //TODO possibly do something better with end actions
-            trankControls.deselect();
-            sendCommandBox.deselect();
+        for(int j=0;j<numPlayers;j++)
+        {
+            if(!players[j]->isAlive())
+                players[j]->incrementDeathClock();
+        }
+        trankControls.deselect();
+        sendCommandBox.deselect();
 
-            currState = IDLE;
+        currState = IDLE;
     }
     //TODO Change this to use variable number of players
 
@@ -144,20 +148,18 @@ void World::queueShootActions()
     Command *command;
     for(int j = 0; j < pendingPlayerCommands.size(); j++)
     {
-
-        if(pendingPlayerCommands[j]==GUI::TRANK_CONTROLS::FIRE)
+        if(players[j]->isAlive())
         {
-            command = new Command();
-            command->category = Category::Type::NONE;
-            command->action = [=]()
+            if(pendingPlayerCommands[j]==GUI::TRANK_CONTROLS::FIRE)
             {
-                players[j]->startFire();
-                sf::Vector2i bulletLocation;
-                bulletLocation = players[j]->getTilePos(1);
-                players[j]->startFire();
-            };
-            commandQueue.push(command);
-            break;
+                command = new Command();
+                command->category = Category::Type::NONE;
+                command->action = [=]()
+                {
+                    players[j]->startFire();
+                };
+                commandQueue.push(command);
+            }
         }
     }
 }
@@ -170,72 +172,75 @@ void World::queueMovementActions()
     Command *command;
     for(int j = 0; j < pendingPlayerCommands.size(); j++)
     {
-        switch(pendingPlayerCommands[j])
+        if(players[j]->isAlive())
         {
-        case GUI::TRANK_CONTROLS::MOVE_SINGLE:
-            command = new Command();
-            command->category = Category::Type::NONE;
-            command->action = [=]()
+            switch(pendingPlayerCommands[j])
             {
-                sf::Vector2i tilePos = players[j]->getTilePos();
-                //TODO logging
-                //Remove player from its parent node
+            case GUI::TRANK_CONTROLS::MOVE_SINGLE:
+                command = new Command();
+                command->category = Category::Type::NONE;
+                command->action = [=]()
+                {
+                    sf::Vector2i tilePos = players[j]->getTilePos();
+                    //TODO logging
+                    //Remove player from its parent node
                     if(map->removePlayerChildNode(MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth))==NULL)
                         std::cerr << "Shit be horribly broken\n";
 
-                //get player's new tilePos, and attach it to the new parent node
+                    //get player's new tilePos, and attach it to the new parent node
                     tilePos = players[j]->getTilePos(1);
 
                     map->layerChildNode(players[j],MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth));
                     players[j]->startMovement(Player::SINGLE_MOVE);
                 };
-            commandQueue.push(command);
-            break;
-        case GUI::TRANK_CONTROLS::MOVE_DOUBLE:
-            command = new Command();
-            command->category = Category::Type::NONE;
-            command->action = [=]()
-            {
-                sf::Vector2i tilePos = players[j]->getTilePos();
-                //TODO logging
-                //Remove player from its parent node
+                commandQueue.push(command);
+                break;
+            case GUI::TRANK_CONTROLS::MOVE_DOUBLE:
+                command = new Command();
+                command->category = Category::Type::NONE;
+                command->action = [=]()
+                {
+                    sf::Vector2i tilePos = players[j]->getTilePos();
+                    //TODO logging
+                    //Remove player from its parent node
                     if(map->removePlayerChildNode(MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth))==NULL)
-                    std::cerr << "Shit be horribly broken\n";
+                        std::cerr << "Shit be horribly broken\n";
 
                     tilePos = players[j]->getTilePos(2);
 
                     map->layerChildNode(players[j],MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth));
                     players[j]->startMovement(Player::DOUBLE_MOVE);
                 };
-            commandQueue.push(command);
-            break;
-        case GUI::TRANK_CONTROLS::ROTATE_HALF_CLOCKWISE:
-            command = new Command();
-            command->category = Category::Type::NONE;
-            command->action = [=]()
-            {
-                players[j]->startRotation(Player::CLOCKWISE,Player::SINGLE_ROTATION);
-            };
-            commandQueue.push(command);
-            break;
-        case GUI::TRANK_CONTROLS::ROTATE_HALF_COUNTER:
-            command = new Command();
-            command->category = Category::Type::NONE;
-            command->action = [=]()
-            {
-                players[j]->startRotation(Player::COUNTER_CLOCKWISE,Player::SINGLE_ROTATION);
-            };
-            commandQueue.push(command);
-            break;
-        case GUI::TRANK_CONTROLS::ROTATE_FULL:
-            command = new Command();
-            command->category = Category::Type::NONE;
-            command->action = [=]()
-            {
-                players[j]->startRotation(Player::CLOCKWISE,Player::DOUBLE_ROTATION);
-            };
-            commandQueue.push(command);
-            break;
+                commandQueue.push(command);
+                break;
+            case GUI::TRANK_CONTROLS::ROTATE_HALF_CLOCKWISE:
+                command = new Command();
+                command->category = Category::Type::NONE;
+                command->action = [=]()
+                {
+                    players[j]->startRotation(Player::CLOCKWISE,Player::SINGLE_ROTATION);
+                };
+                commandQueue.push(command);
+                break;
+            case GUI::TRANK_CONTROLS::ROTATE_HALF_COUNTER:
+                command = new Command();
+                command->category = Category::Type::NONE;
+                command->action = [=]()
+                {
+                    players[j]->startRotation(Player::COUNTER_CLOCKWISE,Player::SINGLE_ROTATION);
+                };
+                commandQueue.push(command);
+                break;
+            case GUI::TRANK_CONTROLS::ROTATE_FULL:
+                command = new Command();
+                command->category = Category::Type::NONE;
+                command->action = [=]()
+                {
+                    players[j]->startRotation(Player::CLOCKWISE,Player::DOUBLE_ROTATION);
+                };
+                commandQueue.push(command);
+                break;
+            }
         }
     }
 }
@@ -579,7 +584,7 @@ void World::generatePlayerMoves()
         if(randNum==5)
             randNum=6;
 
-        GUI::TRANK_CONTROLS command = static_cast<GUI::TRANK_CONTROLS>(randNum);
+        GUI::TRANK_CONTROLS command = static_cast<GUI::TRANK_CONTROLS>(5);
         pendingPlayerCommands[j] = command;
         playersReady++;
     }

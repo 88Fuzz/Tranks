@@ -125,16 +125,12 @@ int BoardPiece::getDeflection(Moveable::Direction forward)
     switch(forward)
     {
     case Moveable::Direction::NORTH:
-        std::cout << " north " << deflections[0] << "\n";
         return deflections[0];
     case Moveable::Direction::EAST:
-        std::cout << " east " << deflections[1] << "\n";
         return deflections[1];
     case Moveable::Direction::SOUTH:
-        std::cout << " south " << deflections[2] << "\n";
         return deflections[2];
     case Moveable::Direction::WEST:
-        std::cout << " west " << deflections[3] << "\n";
         return deflections[3];
     }
 

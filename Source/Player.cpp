@@ -16,7 +16,8 @@ Player::Player(int playerNum, TextureHolder* textures) :
                 actionExecuting(),
                 alive(true),
                 playerNum(playerNum),
-                score(0)
+                score(0),
+                deathRespawnCount(0)
 {
     TextureData* table = initializePlayerData();
     sprite = MySprite(textures->get(table[playerNum].textureId), table[playerNum].textureRect);
@@ -121,7 +122,10 @@ void Player::drawCurrent(sf::RenderTarget& target, sf::RenderStates states) cons
  */
 void Player::respawn()
 {
-//    tilePos = spawnPos;
+    deathRespawnCount=0;
+    setAlive(true);
+    tilePos = spawnPos;
+    sprite.setRotation(spawnFacing);
     forward = spawnFacing;
     sprite.setPosition(sf::Vector2f(spawnPos.x * tileSize, spawnPos.y * tileSize));
 }
@@ -131,17 +135,12 @@ void Player::respawn()
  */
 void Player::setSpawnPos(sf::Vector2i pos, Moveable::Direction facing)
 {
-//TODO figure out if copy constructors work this way
     spawnPos = pos;
     tilePos = pos;
     sprite.setPosition(sf::Vector2f(pos.x * tileSize, pos.y * tileSize));
     forward = facing;
     spawnFacing = facing;
     sprite.setRotation(forward);
-    if(playerNum==0)
-    {
-        std::cout << "spawn pos " << tilePos.x << " " << tilePos.y << "\n";
-    }
 }
 
 /*
@@ -253,7 +252,7 @@ sf::Vector2i Player::getTilePos()
 }
 
 /*
- * Returns space player will be if moved numSpaces forward
+ * Returns space player will be if moved numSpaces forward. Returned value may not be valid
  */
 sf::Vector2i Player::getTilePos(int numSpaces)
 {
@@ -272,6 +271,37 @@ sf::Vector2i Player::getTilePos(int numSpaces)
 }
 
 /*
+ * Returns space player will be if moved numSpaces forward. If new tile is out of bounds,
+ * the current tilePos will be returned.
+ */
+sf::Vector2i Player::getTileCorrectedPos(int numSpaces)
+{
+    int tmpX = tilePos.x;
+    int tmpY = tilePos.y;
+    switch(getForwardDirection())
+    {
+    case Direction::NORTH:
+        if(tmpY - numSpaces > 0)
+            tmpY -= numSpaces;
+        break;
+    case Direction::SOUTH:
+        if(tmpY + numSpaces < mapHeight)
+            tmpY += numSpaces;
+        break;
+    case Direction::EAST:
+        if(tmpX + numSpaces < mapWidth)
+            tmpX += numSpaces;
+        break;
+    case Direction::WEST:
+        if(tmpX - numSpaces > 0)
+            tmpX -= numSpaces;
+        break;
+    }
+
+    return sf::Vector2i(tmpX, tmpY);
+}
+
+/*
  * Returns true if player is moving, rotating, or shooting. Otherwise false
  */
 bool Player::isActionExecuting()
@@ -284,12 +314,14 @@ bool Player::isActionExecuting()
  */
 void Player::startFire()
 {
+    sf::Vector2i tmpPos = getTileCorrectedPos(1);
+
     bullet->setMapHeight(mapHeight);
     bullet->setMapWidth(mapWidth);
     bullet->setTileSize(tileSize);
 
     bullet->resetBounceTotal();
-    bullet->setSpawnPos(getTilePos(1), getForwardDirection());
+    bullet->setSpawnPos(getTileCorrectedPos(1), getForwardDirection());
 }
 
 void Player::setMap(BoardPiece *map)
@@ -325,4 +357,11 @@ int Player::getScore()
 int Player::getPlayerNum()
 {
     return playerNum;
+}
+
+void Player::incrementDeathClock()
+{
+    deathRespawnCount++;
+    if(deathRespawnCount > RESPAWN_LIMIT)
+        respawn();
 }

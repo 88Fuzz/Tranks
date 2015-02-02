@@ -27,6 +27,7 @@ private:
     static constexpr int BOUNCE_LIMIT = 180;
 
     void rotate(int);
+    void checkTileMovement(sf::Vector2i);
 
     //Rate to move in x direction
     int xFactor;
