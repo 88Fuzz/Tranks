@@ -35,6 +35,7 @@ public:
 protected:
     //These requests are used to change states. For example, if game needs to go from
     //main menu to the game, use these
+    void requestStackSwap(States::ID);
     void requestStackPush(States::ID);
     void requestStackPop();
     void requestStateClear();

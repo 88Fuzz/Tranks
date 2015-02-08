@@ -3,7 +3,7 @@
 
 namespace GUI
 {
-    enum TRANK_CONTROLS
+    enum ButtonTypes
     {
         MOVE_SINGLE,
         MOVE_DOUBLE,
@@ -12,7 +12,8 @@ namespace GUI
         ROTATE_FULL,
         FIRE,
         CHECK_BOX,
-        TRANK_CONTROLS_COUNT
+        BIG_BUTTON,
+        BUTTON_TYPES_COUNT
     };
 }
 

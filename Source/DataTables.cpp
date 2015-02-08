@@ -77,14 +77,18 @@ TextureData *initializePlayerData()
  */
 TextureData *initializeButtonData()
 {
-    TextureData *data = (TextureData *) malloc(sizeof(TextureData) * GUI::TRANK_CONTROLS::TRANK_CONTROLS_COUNT);
+    TextureData *data = (TextureData *) malloc(sizeof(TextureData) * GUI::ButtonTypes::BUTTON_TYPES_COUNT);
     int size = 100;
+    int j;
 
-    for(int j = 0; j < GUI::TRANK_CONTROLS::TRANK_CONTROLS_COUNT; j++)
+    for(j = 0; j <= GUI::ButtonTypes::CHECK_BOX; j++)
     {
         data[j].textureId = Textures::BUTTONS;
         data[j].textureRect = sf::IntRect(j * size, 0, size, 2 * size);
     }
+
+    data[j].textureId = Textures::BUTTONS;
+    data[j].textureRect = sf::IntRect(0, 2 * size, 3 * size, 2 * size);
 
     return data;
 }

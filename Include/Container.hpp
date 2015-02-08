@@ -24,6 +24,8 @@ namespace GUI
         Component* getSelectedComponent();
         virtual void deselect();
 
+        void free();
+
     private:
         std::vector<Component*> children;
         int selectedChild;

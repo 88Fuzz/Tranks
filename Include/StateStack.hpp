@@ -31,13 +31,14 @@ public:
 
     explicit StateStack(State::Context);
 
-    template<typename T>
-    void registerState(States::ID);
+    template<typename T> void registerState(States::ID);
+    template<typename T, typename Param1> void registerState(States::ID, Param1);
 
     void update(sf::Time);
     void draw();
     void handleEvent(const sf::Event*);
 
+    void swapState(States::ID);
     void pushState(States::ID);
     void popState();
     void clearStates();
@@ -47,7 +48,7 @@ public:
 private:
     struct PendingChange
     {
-        explicit PendingChange(Action action, States::ID stateID = States::None);
+        explicit PendingChange(Action action, States::ID stateID = States::NONE);
 
         Action action;
         States::ID stateID;
@@ -59,6 +60,7 @@ private:
     State::Context context;
     std::map<States::ID, std::function<State*()>> factories;
     State* createState(States::ID);
+    void destroyState(State *);
     void applyPendingChanges();
 };
 
@@ -75,5 +77,24 @@ void StateStack::registerState(States::ID stateID)
         return (new T(this, context));
     };
 }
+
+template <typename T, typename Param1>
+void StateStack::registerState(States::ID stateID, Param1 arg1)
+{
+    factories[stateID] = [this, arg1] ()
+    {
+        return (new T(this, context, arg1));
+    };
+}
+
+//template <typename T, typename Param1>
+//void StateStack::registerState(States::ID stateID, Param1 arg1)
+//{
+//    factories[stateID] = [this, arg1] ()
+//    {
+//        return (new T(*this, context, arg1));
+//    };
+//}
+
 
 #endif

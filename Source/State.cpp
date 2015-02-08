@@ -15,6 +15,11 @@ State::~State()
 {
 }
 
+void State::requestStackSwap(States::ID stateID)
+{
+    stack->swapState(stateID);
+}
+
 void State::requestStackPush(States::ID stateID)
 {
     stack->pushState(stateID);

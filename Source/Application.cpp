@@ -1,7 +1,10 @@
 #include "Application.hpp"
 #include "StateIdentifiers.hpp"
 #include "GameState.hpp"
+#include "MainMenuState.hpp"
+#include "LobbyState.hpp"
 #include <sstream>
+#include <iostream>
 
 const sf::Time Application::TIMEPERFRAME = sf::seconds(1.f / 60.f);
 
@@ -22,7 +25,9 @@ Application::Application() :
     statisticsText.setCharacterSize(10u);
 
     registerStates();
-    stateStack.pushState(States::Game);
+    std::cout << "Made it here\n";
+    stateStack.pushState(States::MAIN_MENU);
+//    stateStack.pushState(States::GAME);
 }
 
 void Application::run()
@@ -107,7 +112,10 @@ void Application::registerStates()
 {
 //    stateStack.registerState < TitleState > (States::Title);
 //    stateStack.registerState < MenuState > (States::Menu);
-    stateStack.registerState<GameState>(States::Game);
+    stateStack.registerState<GameState>(States::GAME);
+    stateStack.registerState<MainMenuState>(States::MAIN_MENU);
+    stateStack.registerState<LobbyState>(States::HOST_LOBBY, true);
+    stateStack.registerState<LobbyState>(States::JOIN_LOBBY, false);
 //    stateStack.registerState < PauseState > (States::Pause);
 //    stateStack.registerState < SettingsState > (States::Settings);
 //    stateStack.registerState < GameOverState > (States::GameOver);

@@ -40,6 +40,11 @@ void StateStack::handleEvent(const sf::Event* event)
     applyPendingChanges();
 }
 
+void StateStack::swapState(States::ID stateID)
+{
+    actionList.push_back(PendingChange(Pop));
+    actionList.push_back(PendingChange(Push, stateID));
+}
 void StateStack::pushState(States::ID stateID)
 {
     actionList.push_back(PendingChange(Push, stateID));
@@ -68,6 +73,12 @@ State* StateStack::createState(States::ID stateID)
     return found->second();
 }
 
+void StateStack::destroyState(State *state)
+{
+            std::cout << "destroied?\n";
+    delete state;
+}
+
 void StateStack::applyPendingChanges()
 {
     for(std::vector<PendingChange>::iterator it = actionList.begin(); it != actionList.end(); it++)
@@ -79,6 +90,7 @@ void StateStack::applyPendingChanges()
             break;
 
         case Pop:
+            std::cout << "destroy?\n";
             delete stateStack.back();
             stateStack.pop_back();
             break;

@@ -1,11 +1,12 @@
-#ifndef BOOK_RESOURCEHOLDER_HPP
-#define BOOK_RESOURCEHOLDER_HPP
+#ifndef __RESOURCEHOLDER_HPP__
+#define __RESOURCEHOLDER_HPP__
 
 #include <map>
 #include <string>
 #include <memory>
 #include <stdexcept>
 #include <cassert>
+#include <iostream>
 
 /*
  * Template class used to map identifiers to classes.
@@ -77,6 +78,6 @@ void ResourceHolder<Resource, Identifier>::insertResource(Identifier id, std::un
 {
     // Insert and check success
     auto inserted = mResourceMap.insert(std::make_pair(id, std::move(resource)));
-    assert(inserted.second);
+//    assert(inserted.second);
 }
 #endif

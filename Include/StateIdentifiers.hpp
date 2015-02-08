@@ -6,8 +6,13 @@ namespace States
 {
 	enum ID
 	{
-		None,
-		Game
+		NONE,
+		GAME,
+		MAIN_MENU,
+		HOST_LOBBY,
+		JOIN_LOBBY,
+		HOST_GAME,
+		JOIN_GAME
 	};
 }
 

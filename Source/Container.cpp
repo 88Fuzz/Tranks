@@ -14,8 +14,17 @@ namespace GUI
 
     Container::~Container()
     {
+        std::cout << "THESE THINGS ARE BEING FREED2\n";
         for(std::vector<Component *>::iterator it = children.begin(); it != children.end(); it++)
             delete *it;
+    }
+
+    void Container::free()
+    {
+        std::cout << "THESE THINGS ARE BEING FREED1\n";
+        for(std::vector<Component *>::iterator it = children.begin(); it != children.end(); it++)
+            delete *it;
+
     }
 
     void Container::pack(Component* component)

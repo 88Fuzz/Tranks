@@ -37,7 +37,7 @@ World::World(sf::RenderWindow* outputTarget, FontHolder* fonts) :
     for(int j = 0; j < MapCreator::PLAYER_COUNT; j++)
     {
         players.push_back(new Player(j, &textures));
-        pendingPlayerCommands.push_back(GUI::TRANK_CONTROLS::CHECK_BOX);
+        pendingPlayerCommands.push_back(GUI::ButtonTypes::CHECK_BOX);
     }
 
     buildScene();
@@ -150,7 +150,7 @@ void World::queueShootActions()
     {
         if(players[j]->isAlive())
         {
-            if(pendingPlayerCommands[j]==GUI::TRANK_CONTROLS::FIRE)
+            if(pendingPlayerCommands[j]==GUI::ButtonTypes::FIRE)
             {
                 command = new Command();
                 command->category = Category::Type::NONE;
@@ -176,7 +176,7 @@ void World::queueMovementActions()
         {
             switch(pendingPlayerCommands[j])
             {
-            case GUI::TRANK_CONTROLS::MOVE_SINGLE:
+            case GUI::ButtonTypes::MOVE_SINGLE:
                 command = new Command();
                 command->category = Category::Type::NONE;
                 command->action = [=]()
@@ -195,7 +195,7 @@ void World::queueMovementActions()
                 };
                 commandQueue.push(command);
                 break;
-            case GUI::TRANK_CONTROLS::MOVE_DOUBLE:
+            case GUI::ButtonTypes::MOVE_DOUBLE:
                 command = new Command();
                 command->category = Category::Type::NONE;
                 command->action = [=]()
@@ -213,7 +213,7 @@ void World::queueMovementActions()
                 };
                 commandQueue.push(command);
                 break;
-            case GUI::TRANK_CONTROLS::ROTATE_HALF_CLOCKWISE:
+            case GUI::ButtonTypes::ROTATE_HALF_CLOCKWISE:
                 command = new Command();
                 command->category = Category::Type::NONE;
                 command->action = [=]()
@@ -222,7 +222,7 @@ void World::queueMovementActions()
                 };
                 commandQueue.push(command);
                 break;
-            case GUI::TRANK_CONTROLS::ROTATE_HALF_COUNTER:
+            case GUI::ButtonTypes::ROTATE_HALF_COUNTER:
                 command = new Command();
                 command->category = Category::Type::NONE;
                 command->action = [=]()
@@ -231,7 +231,7 @@ void World::queueMovementActions()
                 };
                 commandQueue.push(command);
                 break;
-            case GUI::TRANK_CONTROLS::ROTATE_FULL:
+            case GUI::ButtonTypes::ROTATE_FULL:
                 command = new Command();
                 command->category = Category::Type::NONE;
                 command->action = [=]()
@@ -256,24 +256,24 @@ void World::validateMoves()
         pendingLocations[j] = players[j]->getTilePos();
         switch(pendingPlayerCommands[j])
         {
-        case GUI::TRANK_CONTROLS::MOVE_SINGLE:
+        case GUI::ButtonTypes::MOVE_SINGLE:
             if(validateAction(players[j], 1))
             {
                 pendingLocations[j] = players[j]->getTilePos(1);
             }
             else
             {
-                pendingPlayerCommands[j] = GUI::TRANK_CONTROLS::CHECK_BOX;
+                pendingPlayerCommands[j] = GUI::ButtonTypes::CHECK_BOX;
             }
             break;
-        case GUI::TRANK_CONTROLS::MOVE_DOUBLE:
+        case GUI::ButtonTypes::MOVE_DOUBLE:
             if(validateAction(players[j], 2))
             {
                 pendingLocations[j] = players[j]->getTilePos(2);
             }
             else
             {
-                pendingPlayerCommands[j] = GUI::TRANK_CONTROLS::CHECK_BOX;
+                pendingPlayerCommands[j] = GUI::ButtonTypes::CHECK_BOX;
             }
             break;
         }
@@ -288,16 +288,16 @@ void World::validateMoves()
         {
             if(pendingLocations[j].x == pendingLocations[i].x && pendingLocations[j].y == pendingLocations[i].y)
             {
-                if(pendingPlayerCommands[j] == GUI::TRANK_CONTROLS::MOVE_SINGLE
-                        || pendingPlayerCommands[j] == GUI::TRANK_CONTROLS::MOVE_DOUBLE)
+                if(pendingPlayerCommands[j] == GUI::ButtonTypes::MOVE_SINGLE
+                        || pendingPlayerCommands[j] == GUI::ButtonTypes::MOVE_DOUBLE)
                 {
-                    pendingPlayerCommands[j] = GUI::TRANK_CONTROLS::CHECK_BOX;
+                    pendingPlayerCommands[j] = GUI::ButtonTypes::CHECK_BOX;
                 }
 
-                if(pendingPlayerCommands[i] == GUI::TRANK_CONTROLS::MOVE_SINGLE
-                        || pendingPlayerCommands[i] == GUI::TRANK_CONTROLS::MOVE_DOUBLE)
+                if(pendingPlayerCommands[i] == GUI::ButtonTypes::MOVE_SINGLE
+                        || pendingPlayerCommands[i] == GUI::ButtonTypes::MOVE_DOUBLE)
                 {
-                    pendingPlayerCommands[i] = GUI::TRANK_CONTROLS::CHECK_BOX;
+                    pendingPlayerCommands[i] = GUI::ButtonTypes::CHECK_BOX;
                 }
             }
         }
@@ -425,30 +425,31 @@ void World::buildScene()
     }
 
     //Button initialization
-    GUI::Button *tmpButton = new GUI::Button(tmpContext, GUI::TRANK_CONTROLS::MOVE_DOUBLE, buttonX, buttonY, 100, 100);
+    //TODO free the buttons in the button container
+    GUI::Button *tmpButton = new GUI::Button(tmpContext, GUI::ButtonTypes::MOVE_DOUBLE, buttonX, buttonY, 100, 100);
     tmpButton->setCallback([&] ()
     {
-        pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::MOVE_DOUBLE;
+        pendingPlayerCommands[0] = GUI::ButtonTypes::MOVE_DOUBLE;
         playersReady++;
         generatePlayerMoves();
     });
     trankControls.pack(tmpButton);
     buttonY += 100;
 
-    tmpButton = new GUI::Button(tmpContext, GUI::TRANK_CONTROLS::MOVE_SINGLE, buttonX, buttonY, 100, 100);
+    tmpButton = new GUI::Button(tmpContext, GUI::ButtonTypes::MOVE_SINGLE, buttonX, buttonY, 100, 100);
     tmpButton->setCallback([&] ()
     {
-        pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::MOVE_SINGLE;
+        pendingPlayerCommands[0] = GUI::ButtonTypes::MOVE_SINGLE;
         playersReady++;
         generatePlayerMoves();
     });
     trankControls.pack(tmpButton);
     buttonX += 100;
 
-    tmpButton = new GUI::Button(tmpContext, GUI::TRANK_CONTROLS::CHECK_BOX, buttonX, buttonY, 100, 100);
+    tmpButton = new GUI::Button(tmpContext, GUI::ButtonTypes::CHECK_BOX, buttonX, buttonY, 100, 100);
     tmpButton->setCallback([&] ()
     {
-        pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::CHECK_BOX;
+        pendingPlayerCommands[0] = GUI::ButtonTypes::CHECK_BOX;
         playersReady++;
         generatePlayerMoves();
     });
@@ -456,30 +457,30 @@ void World::buildScene()
     buttonX -= 100;
     buttonY += 100;
 
-    tmpButton = new GUI::Button(tmpContext, GUI::TRANK_CONTROLS::ROTATE_FULL, buttonX, buttonY, 100, 100);
+    tmpButton = new GUI::Button(tmpContext, GUI::ButtonTypes::ROTATE_FULL, buttonX, buttonY, 100, 100);
     tmpButton->setCallback([&] ()
     {
-        pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::ROTATE_FULL;
+        pendingPlayerCommands[0] = GUI::ButtonTypes::ROTATE_FULL;
         playersReady++;
         generatePlayerMoves();
     });
     trankControls.pack(tmpButton);
     buttonX -= 100;
 
-    tmpButton = new GUI::Button(tmpContext, GUI::TRANK_CONTROLS::ROTATE_HALF_COUNTER, buttonX, buttonY, 100, 100);
+    tmpButton = new GUI::Button(tmpContext, GUI::ButtonTypes::ROTATE_HALF_COUNTER, buttonX, buttonY, 100, 100);
     tmpButton->setCallback([&] ()
     {
-        pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::ROTATE_HALF_COUNTER;
+        pendingPlayerCommands[0] = GUI::ButtonTypes::ROTATE_HALF_COUNTER;
         playersReady++;
         generatePlayerMoves();
     });
     trankControls.pack(tmpButton);
     buttonX += 200;
 
-    tmpButton = new GUI::Button(tmpContext, GUI::TRANK_CONTROLS::ROTATE_HALF_CLOCKWISE, buttonX, buttonY, 100, 100);
+    tmpButton = new GUI::Button(tmpContext, GUI::ButtonTypes::ROTATE_HALF_CLOCKWISE, buttonX, buttonY, 100, 100);
     tmpButton->setCallback([&] ()
     {
-        pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::ROTATE_HALF_CLOCKWISE;
+        pendingPlayerCommands[0] = GUI::ButtonTypes::ROTATE_HALF_CLOCKWISE;
         playersReady++;
         generatePlayerMoves();
     });
@@ -487,10 +488,10 @@ void World::buildScene()
     buttonX -= 100;
     buttonY += 100;
 
-    tmpButton = new GUI::Button(tmpContext, GUI::TRANK_CONTROLS::FIRE, buttonX, buttonY, 100, 100);
+    tmpButton = new GUI::Button(tmpContext, GUI::ButtonTypes::FIRE, buttonX, buttonY, 100, 100);
     tmpButton->setCallback([&] ()
     {
-        pendingPlayerCommands[0] = GUI::TRANK_CONTROLS::FIRE;
+        pendingPlayerCommands[0] = GUI::ButtonTypes::FIRE;
         playersReady++;
         generatePlayerMoves();
     });
@@ -584,7 +585,7 @@ void World::generatePlayerMoves()
         if(randNum==5)
             randNum=6;
 
-        GUI::TRANK_CONTROLS command = static_cast<GUI::TRANK_CONTROLS>(5);
+        GUI::ButtonTypes command = static_cast<GUI::ButtonTypes>(5);
         pendingPlayerCommands[j] = command;
         playersReady++;
     }

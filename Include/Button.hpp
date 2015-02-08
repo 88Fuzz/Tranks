@@ -20,7 +20,7 @@ namespace GUI
     public:
         typedef std::function<void()> Callback;
 
-        enum Type
+        enum ButtonState
         {
             NORMAL,
             PRESSED,
@@ -46,8 +46,9 @@ namespace GUI
 
     private:
         virtual void draw(sf::RenderTarget&, sf::RenderStates) const;
-        void changeTexture(Type buttonType);
+        void changeTexture(ButtonState buttonButtonState);
         bool checkMouseClickLocation(sf::Vector2f, sf::Vector2i);
+        void centerText();
 
         Callback callbackFunc;
         MySprite sprite;
@@ -55,6 +56,8 @@ namespace GUI
         bool toggle;
         int buttonWidth;
         int buttonHeight;
+        //Used to keep track of original y coordinate of button in texture sheet so that the texture can change state correctly
+        int yOffset;
         //Used to get mouse position
         sf::RenderWindow *window;
         sf::IntRect textureRect;

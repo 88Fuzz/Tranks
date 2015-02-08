@@ -10,10 +10,9 @@
 
 namespace GUI
 {
-
     Button::Button(State::Context context, int enumButton, int x, int y, int width, int height) :
                     callbackFunc(NULL),
-                    text("", context.fonts->get(Fonts::Sansation), 16),
+                    text("", context.fonts->get(Fonts::Sansation), 48),
                     window(context.window),
                     toggle(false),
                     buttonWidth(width),
@@ -24,14 +23,12 @@ namespace GUI
         sprite.centerOrigin();
         sprite.setPosition(x, y);
         textureRect = table[enumButton].textureRect;
+        yOffset = textureRect.top;
 
         //TODO change to vector. yo
         free(table);
 
         changeTexture(NORMAL);
-
-//        sf::FloatRect bounds = sprite.getLocalBounds();
-//        text.setPosition(bounds.width / 2.f, bounds.height / 2.f);
     }
 
     void Button::setCallback(Callback callback)
@@ -39,10 +36,16 @@ namespace GUI
         callbackFunc = std::move(callback);
     }
 
-    void Button::setText(const std::string text)
+    void Button::setText(const std::string txt)
     {
-        this->text.setString(text);
-//	centerOrigin(text);
+        text.setString(txt);
+        centerText();
+    }
+
+    void Button::centerText()
+    {
+        sf::Vector2f pos = sprite.getPosition();
+        text.setPosition(pos.x + sprite.getWidth()/8, pos.y + sprite.getHeight()/6);
     }
 
     void Button::setToggle(bool flag)
@@ -146,10 +149,10 @@ namespace GUI
         target.draw(text, states);
     }
 
-    void Button::changeTexture(Type buttonType)
+    void Button::changeTexture(ButtonState buttonState)
     {
         sf::IntRect newTextureRect = textureRect;
-        newTextureRect.top = buttonHeight * buttonType;
+        newTextureRect.top = buttonHeight * buttonState + yOffset;
         newTextureRect.width = buttonWidth;
         newTextureRect.height = buttonHeight;
 

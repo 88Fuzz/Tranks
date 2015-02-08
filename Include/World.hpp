@@ -70,7 +70,7 @@ private:
     TextureHolder textures;
     FontHolder* fonts;
     std::vector<Player *> players;
-    std::vector<GUI::TRANK_CONTROLS> pendingPlayerCommands;
+    std::vector<GUI::ButtonTypes> pendingPlayerCommands;
     BoardPiece* map;
 
     SceneNode sceneGraph;
