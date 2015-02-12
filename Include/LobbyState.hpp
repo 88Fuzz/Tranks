@@ -4,6 +4,7 @@
 #include "State.hpp"
 #include "Container.hpp"
 #include "GameServer.hpp"
+#include <SFML/Graphics/Text.hpp>
 
 class LobbyState: public State
 {
@@ -17,13 +18,18 @@ public:
     void quit();
 
 private:
+    void handlePacket(sf::Int32, sf::Packet*);
+    void loadTextures();
+    void updateNumPlayersText();
+
+    static const std::string numPlayersStr;
     GUI::Container buttons;
+    sf::Text numPlayersText;
     GameServer server;
     sf::TcpSocket socket;
     bool isHost;
     bool socketConnected;
-
-    void loadTextures();
+    sf::Int16 numPlayers;
 };
 
 #endif

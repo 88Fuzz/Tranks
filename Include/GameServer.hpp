@@ -1,9 +1,13 @@
 #ifndef __GAMESERVER_HPP__
 #define __GAMESERVER_HPP__
 
-
+#include <SFML/System/Thread.hpp>
+#include <SFML/System/Clock.hpp>
+#include <SFML/System/Sleep.hpp>
 #include <SFML/Network/TcpListener.hpp>
 #include <SFML/Network/TcpSocket.hpp>
+#include <map>
+#include <string>
 
 class GameServer
 {
@@ -14,7 +18,6 @@ public:
 
     void notifyNewConnection();
 
-private:
     // A GameServerRemotePeer refers to one instance of the game, may it be local or from another computer
     struct RemoteConnection
     {
@@ -33,6 +36,7 @@ private:
         sf::Int16 score;
     };
 
+private:
     void handleIncomingConnections();
     void setListening(bool);
     void broadcastMessage(const std::string &);
@@ -54,7 +58,7 @@ private:
     bool stopServer;
 
     //was mPeers
-    std::vector<RemoteConnection> clientConnections;
+    std::vector<RemoteConnection *> clientConnections;
 
     //was mListenerSocket
     sf::TcpListener socketListener;
@@ -65,7 +69,7 @@ private:
     sf::Clock serverClock;
 
     //was mAircraftInfo
-    std::map<sf::Int32, PlayerInfo> playerInfoMap;
+    std::map<sf::Int32, PlayerInfo *> playerInfoMap;
 
     int maxScore;
 

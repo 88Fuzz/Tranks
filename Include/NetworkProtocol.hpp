@@ -9,9 +9,10 @@ namespace Server
     // Packets originated in the server
     enum PacketType
     {
-        INITIAL_STATE,
-        PLAYER_CONNECT,     //format: [Int32:packetType] [Int16:number of players connected]
-        PLAYER_DISCONNECT,
+        INITIAL_STATE,      //format: [Int32:packetType] [Int32:number of players connected]
+        PLAYER_CONNECT,     //format: [Int32:packetType] [Int32:number of players connected]
+        PLAYER_DISCONNECT,  //format: [Int32:packetType] [Int32:playerId disconnected] [Int32:number of players connected]
+        HOST_DISCONNECT,    //format: [Int32:packetType]
         PLAYER_ACTION,      //format: [Int32:packetType] [Int32:playerIdentifier] [Int16:GUI::ButtonTypes]
         PLAYER_KILL,        //format: [Int32:packetType] [Int32:playerIdentifier doing killing] [Int32:playerIdentifier killed player] [Int16:player doing killing score]
         PLAYER_SCORE,       //format: [Int32:packetType] [Int32:playerIdentifier] [Int16:playerIdentifier score]

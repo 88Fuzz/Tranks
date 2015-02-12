@@ -15,7 +15,7 @@
 class Application
 {
 public:
-    Application();
+    Application(int, int, int);
     void run();
 
 private:

@@ -1,11 +1,9 @@
 CC=g++ -std=c++0x
 INCS=/home/kyle/SFML/include
-#INCS2=/home/kyle/workspace/SFMLtest/examples/03_World/Include/
-INCS2=Include/
+PROJ_INC=Include/
 LIBS=/home/kyle/SFML/lib
-#SRCS=Main.cpp Game.cpp Aircraft.cpp Entity.cpp SceneNode.cpp SpriteNode.cpp World.cpp
+SFML_LINKS=-lsfml-network -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
 SRCS=$(wildcard Source/*.cpp)
-#OBJS=$(SRCS:.cpp=.o)
 OBJS=$(SRCS:Source/*.cpp=*.o)
 OBJS_SRC=$(patsubst %.cpp,%.o, $(SRCS))
 OBJS_DIR=Objs
@@ -15,26 +13,22 @@ all: compile link
 debug: db dblink
 
 compile:
-#	mkdir -p $(OBJS_DIR)
-	$(CC) $(SRCS) -I$(INCS) -I$(INCS2) -c #$< -o $(OBJS_DIR)
-#	$(CC) -c $(SRCS) -I$(INCS) -I$(INCS2) -o $@ $<
+	$(CC) $(SRCS) -I$(INCS) -I$(PROJ_INC) -c #$< -o $(OBJS_DIR)
 
 link:
-	$(CC) $(SRCS) -I$(INCS) -I$(INCS2) -o $(EXNM) -L$(LIBS) -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
-#	$(CC) $(OBJS) -o $(EXNM) -L$(LIBS) -lsfml-graphics -lsfml-window -lsfml-system
+	$(CC) $(SRCS) -I$(INCS) -I$(PROJ_INC) -o $(EXNM) -L$(LIBS) $(SFML_LINKS)
 
 db:
-	$(CC) -g $(SRCS) -I$(INCS) -I$(INCS2) -c
+	$(CC) -g $(SRCS) -I$(INCS) -I$(PROJ_INC) -c
 
 dblink:
-	$(CC) -g $(SRCS) -I$(INCS) -I$(INCS2) -o $(EXNM) -L$(LIBS) -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
+	$(CC) -g $(SRCS) -I$(INCS) -I$(PROJ_INC) -o $(EXNM) -L$(LIBS) $(SFML_LINKS)
 
 butt:
-	$(CC) $(SRCS) -I$(INCS) -I$(INCS2) -o $(EXNM) -L$(LIBS) -lsfml-graphics -lsfml-window -lsfml-system
+	$(CC) $(SRCS) -I$(INCS) -I$(PROJ_INC) -o $(EXNM) -L$(LIBS) $(SFML_LINKS)
 
 cleano:
 	rm *.o
 
 clean:
 	rm *.o $(EXNM)
-#	rm $(OBJS_DIR)/*.o $(EXNM)

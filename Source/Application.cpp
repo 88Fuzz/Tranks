@@ -8,8 +8,8 @@
 
 const sf::Time Application::TIMEPERFRAME = sf::seconds(1.f / 60.f);
 
-Application::Application() :
-                window(sf::VideoMode(1920, 1080), "Audio", sf::Style::Fullscreen),
+Application::Application(int width, int height, int windowStyle) :
+                window(sf::VideoMode(width, height), "Tranks", windowStyle),
                 textures(),
                 fonts(),
                 stateStack(State::Context(&window, &textures, &fonts)),
