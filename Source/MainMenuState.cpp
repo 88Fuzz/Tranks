@@ -34,7 +34,6 @@ MainMenuState::MainMenuState(StateStack *stack, Context context) :
 
 MainMenuState::~MainMenuState()
 {
-    std::cout << "assclown\n";
 //    buttons.free();
 }
 
@@ -69,11 +68,8 @@ bool MainMenuState::handleEvent(const sf::Event* event)
     }
     else if(event->type == sf::Event::MouseButtonReleased)
     {
-        std::cout << "button released\n";
         if((selected = buttons.getSelectedComponent()) != NULL)
             ((GUI::Button*) selected)->trigger();
-        else
-            std::cout << "Nothing :(\n";
     }
 
     return true;

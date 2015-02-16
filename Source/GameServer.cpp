@@ -1,8 +1,7 @@
 #include "GameServer.hpp"
 #include "NetworkProtocol.hpp"
-#include <SFML/Network/Packet.hpp>
-#include <SFML/Network/Packet.hpp>
 #include <SFML/Network/TcpSocket.hpp>
+#include <SFML/Network/Packet.hpp>
 #include <iostream>
 
 GameServer::RemoteConnection::RemoteConnection() :
@@ -24,12 +23,11 @@ GameServer::GameServer() :
                 connectedPlayers(0),
                 serverClock(),
                 playerInfoMap(),
-                maxScore(5)
+                maxScore(5),
+                playerIdentifierCount(0)
 {
     socketListener.setBlocking(false);
     clientConnections.push_back(new RemoteConnection()),
-    //TODO I don't know what this line is supposed to do
-//    clientConnections[0].reset(RemoteConnection());
     thread.launch();
 }
 
@@ -134,14 +132,13 @@ void GameServer::handleIncomingConnections()
         clientConnections[connectedPlayers]->socket.send(packet);
         clientConnections[connectedPlayers]->ready = true;
         clientConnections[connectedPlayers]->lastPacketTime = now(); // prevent initial timeouts
+        clientConnections[connectedPlayers]->playerIdentifier = ++playerIdentifierCount;
 //        mAircraftCount++;
-        connectedPlayers ++;
+        connectedPlayers++;
 
+        clientConnections.push_back(new RemoteConnection());
         if(connectedPlayers >= MAX_PLAYERS)
             setListening(false);
-        else
-            // Add a new waiting peer
-            clientConnections.push_back(new RemoteConnection());
     }
 }
 
@@ -165,12 +162,13 @@ void GameServer::handleIncomingPackets()
                 packet.clear();
             }
 
-            if(now() >= (*it)->lastPacketTime + CLIENT_TIME_OUT)
+            //TODO implement a heartbeat
+/*            if(now() >= (*it)->lastPacketTime + CLIENT_TIME_OUT)
             {
                 (*it)->timedOut = true;
                 detectedTimeout = true;
             }
-
+*/
         }
     }
 
@@ -178,19 +176,40 @@ void GameServer::handleIncomingPackets()
         handleDisconnections();
 }
 
+void GameServer::sendGameStartMessage()
+{
+    sf::Packet packet;
+    int j=0;
+
+    //TODO more work to be done here???
+    packet << INT32(Server::START_GAME);
+    packet << INT32(clientConnections.size()-1);
+    std::cout << "SEND GAME START\n";
+    for(std::vector<RemoteConnection *>::iterator it = clientConnections.begin(); it != clientConnections.end(); it++)
+    {
+        if((*it)->ready)
+        {
+            std::cout << "mapping playerId " << (*it)->playerIdentifier << " to " << j << "\n";
+            packet << INT32((*it)->playerIdentifier) << INT32(j);
+            (*it)->playerIdentifier = j++;
+        }
+    }
+
+    sendToAll(&packet);
+}
+
 void GameServer::handleDisconnections()
 {
-/*    for(auto itr = clientConnections.begin(); itr != clientConnections.end();)
+    for(auto itr = clientConnections.begin(); itr != clientConnections.end();)
     {
         if((*itr)->timedOut)
         {
             // Inform everyone of the disconnection, erase
             sf::Int32 identifier = (*itr)->playerIdentifier;
-            sendToAll(&(sf::Packet() << static_cast<sf::Int32>(Server::PLAYER_DISCONNECT) << identifier));
+//            sendToAll(&(sf::Packet() << static_cast<sf::Int32>(Server::PLAYER_DISCONNECT) << identifier));
 
             playerInfoMap.erase(identifier);
 
-            std::cout << "Why am i here\n";
             connectedPlayers--;
 //            mAircraftCount -= (*itr)->aircraftIdentifiers.size();
 
@@ -222,7 +241,7 @@ void GameServer::handleDisconnections()
             ++itr;
         }
     }
-*/}
+}
 
 void GameServer::handleIncomingPacket(sf::Packet* packet, RemoteConnection* connection, bool* detectedTimeout)
 {
@@ -240,15 +259,16 @@ void GameServer::handleIncomingPacket(sf::Packet* packet, RemoteConnection* conn
     switch(packetType)
     {
     case Client::QUIT:
-        std::cout << "Player disconnect!!!!!\n";
+        std::cout << "Player disconnect!!!!! sending " << connectedPlayers-1 << "\n";
         //Player is host
         if(connection->playerIdentifier==0)
         {
             stopServer=true;
-            sendToAll(&(sf::Packet() << static_cast<sf::Int32>(Server::HOST_DISCONNECT)));
+            sendToAll(&(sf::Packet() << INT32(Server::HOST_DISCONNECT)));
         }
         else
-            sendToAll(&(sf::Packet() << static_cast<sf::Int32>(Server::PLAYER_DISCONNECT) << static_cast<sf::Int32>(connection->playerIdentifier)));
+            sendToAll(&(sf::Packet() << INT32(Server::PLAYER_DISCONNECT) << INT32(connection->playerIdentifier)
+                    << INT32(connectedPlayers-1)));
 
         connection->timedOut = true;
         *detectedTimeout = true;
@@ -256,22 +276,26 @@ void GameServer::handleIncomingPacket(sf::Packet* packet, RemoteConnection* conn
     case Client::ACTION:
         *packet >> playerId;
         *packet >> action;
-        sendToAll(&(sf::Packet() << static_cast<sf::Int32>(Server::PLAYER_ACTION) << playerId << action));
+        sendToAll(&(sf::Packet() << INT32(Server::PLAYER_ACTION) << INT32(playerId) << INT16(action)));
         break;
     case Client::KILL:
         *packet >> killer;
         *packet >> killed;
         *packet >> playerScore;
         score = incrementPlayerScore(killer, playerScore);
-        sendToAll(&(sf::Packet() << static_cast<sf::Int32>(Server::PLAYER_KILL) << killer << killed << score));
+        sendToAll(&(sf::Packet() << INT32(Server::PLAYER_KILL) << killer << killed << score));
         break;
     case Client::SCORE:
         *packet >> playerId;
         *packet >> playerScore;
         score = incrementPlayerScore(killer, playerScore);
-        sendToAll(&(sf::Packet() << static_cast<sf::Int32>(Server::PLAYER_SCORE) << killer << score));
+        sendToAll(&(sf::Packet() << INT32(Server::PLAYER_SCORE) << killer << score));
         break;
     case Client::MESSAGE:
+        break;
+    case Client::START_GAME:
+        sendGameStartMessage();
+        setListening(false);
         break;
     }
 }
@@ -287,11 +311,11 @@ sf::Time GameServer::now() const
 void GameServer::informWorldState(RemoteConnection *connection)
 {
     sf::Packet packet;
-    packet << static_cast<sf::Int32>(Server::INITIAL_STATE);
+    packet << INT32(Server::INITIAL_STATE);
 //    packet << mWorldHeight << mBattleFieldRect.top + mBattleFieldRect.height;
-//    packet << static_cast<sf::Int32>(mAircraftCount);
+//    packet << INT32(mAircraftCount);
 //TODO is having a player count necessary when there's a connectedPlayers count?
-    packet << static_cast<sf::Int32>(connectedPlayers + 1);
+    packet << INT32(connectedPlayers + 1);
 
 //    for(std::size_t i = 0; i < connectedPlayers; ++i)
 //    {
@@ -316,7 +340,7 @@ void GameServer::broadcastMessage(const std::string& message)
         if(clientConnections[i]->ready)
         {
             sf::Packet packet;
-            packet << static_cast<sf::Int32>(Server::MESSAGE);
+            packet << INT32(Server::MESSAGE);
             packet << message;
 
             clientConnections[i]->socket.send(packet);
@@ -327,7 +351,7 @@ void GameServer::broadcastMessage(const std::string& message)
 void GameServer::notifyNewConnection()
 {
     sf::Packet packet;
-    packet << static_cast<sf::Int32>(Server::PLAYER_CONNECT) << static_cast<sf::Int32>(connectedPlayers + 1);
+    packet << INT32(Server::PLAYER_CONNECT) << INT32(connectedPlayers + 1);
 
     for(std::size_t i = 0; i < connectedPlayers; ++i)
     {
@@ -376,10 +400,10 @@ void GameServer::tick()
 
     if(winners.size() > 1)
     {
-        missionSuccessPacket << static_cast<sf::Int32>(Server::GAME_OVER) << static_cast<sf::Int16>(winners.size());
+        missionSuccessPacket << INT32(Server::GAME_OVER) << INT16(winners.size());
         for(std::vector<sf::Int32>::iterator it = winners.begin(); it != winners.end(); it++)
         {
-            missionSuccessPacket << static_cast<sf::Int32>(*it) << static_cast<sf::Int32>(winners.size());
+            missionSuccessPacket << INT32(*it) << INT32(winners.size());
         }
         sendToAll(&missionSuccessPacket);
     }

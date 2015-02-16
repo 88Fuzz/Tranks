@@ -26,15 +26,15 @@ LobbyState::LobbyState(StateStack *stack, Context context, bool isHost) :
                 State(stack, context),
                 buttons(),
                 isHost(isHost),
-                server(),
-                socket(),
                 numPlayers(0),
                 numPlayersText("", context.fonts->get(Fonts::Sansation), 24)
 {
+    server = NULL;
+    socket = new sf::TcpSocket();
     sf::IpAddress ipAddr;
     loadTextures();
 
-    numPlayersText.setPosition(100,250);
+    numPlayersText.setPosition(100, 250);
     GUI::Button *tmpButton = new GUI::Button(context, GUI::ButtonTypes::BIG_BUTTON, 100, 400, 300, 100);
     tmpButton->setText("EXIT");
     tmpButton->setCallback([&] ()
@@ -46,11 +46,14 @@ LobbyState::LobbyState(StateStack *stack, Context context, bool isHost) :
 
     if(isHost)
     {
+        server = new GameServer();
+        //Sleep so the server's thread can get up and run
+        sf::sleep(sf::milliseconds(300));
         tmpButton = new GUI::Button(context, GUI::ButtonTypes::BIG_BUTTON, 100, 300, 300, 100);
         tmpButton->setText("START");
         tmpButton->setCallback([&] ()
         {
-            requestStackSwap(States::GAME);
+            sendStartGameMessage();
         });
         buttons.pack(tmpButton);
         ipAddr = "127.0.0.1";
@@ -60,13 +63,12 @@ LobbyState::LobbyState(StateStack *stack, Context context, bool isHost) :
         ipAddr = getIpFromFile();
     }
 
-    if(socket.connect(ipAddr, SERVER_PORT, sf::seconds(5.f)) == sf::TcpSocket::Done)
+    if(socket->connect(ipAddr, SERVER_PORT, sf::seconds(20.f)) == sf::TcpSocket::Done)
         socketConnected = true;
     else
         throw "Could not connect to server\n";
-//        mFailedConnectionClock.restart();
 
-    socket.setBlocking(false);
+    socket->setBlocking(false);
 
     updateNumPlayersText();
 }
@@ -82,7 +84,7 @@ void LobbyState::quit()
         // Inform server this client is dying
         sf::Packet packet;
         packet << static_cast<sf::Int32>(Client::QUIT);
-        socket.send(packet);
+        socket->send(packet);
     }
 }
 
@@ -105,7 +107,7 @@ bool LobbyState::update(sf::Time dt)
 {
     // Handle messages from server that may have arrived
     sf::Packet packet;
-    if(socket.receive(packet) == sf::Socket::Done)
+    if(socket->receive(packet) == sf::Socket::Done)
     {
         //TODO add a heart beat to the server to handle timeouts
 //        mTimeSinceLastPacket = sf::seconds(0.f);
@@ -131,12 +133,17 @@ bool LobbyState::update(sf::Time dt)
 
 void LobbyState::handlePacket(sf::Int32 packetType, sf::Packet* packet)
 {
-    std::cout << "HANDLING PACKET " << packetType << "\n";
     sf::Int32 tmp32;
+    int playerDisconnected;
 
     switch(packetType)
     {
     case Server::INITIAL_STATE:
+        *packet >> tmp32;
+        playerId = tmp32;
+        numPlayers = tmp32;
+        updateNumPlayersText();
+        break;
     case Server::PLAYER_CONNECT:
         *packet >> tmp32;
         numPlayers = tmp32;
@@ -145,13 +152,13 @@ void LobbyState::handlePacket(sf::Int32 packetType, sf::Packet* packet)
         //TODO figure this one out
     case Server::PLAYER_DISCONNECT:
         *packet >> tmp32;
+        playerDisconnected = tmp32;
+        *packet >> tmp32;
         numPlayers = tmp32;
         LobbyState::updateNumPlayersText();
-        std::cout << "Player disconnect\n";
         break;
     case Server::HOST_DISCONNECT:
-        std::cout << "SERVER DISCONNECT\n";
-            requestStackSwap(States::MAIN_MENU);
+        requestStackSwap(States::MAIN_MENU);
         break;
         //TODO ignore message in the lobby, shouldn't happen
     case Server::PLAYER_ACTION:
@@ -162,6 +169,26 @@ void LobbyState::handlePacket(sf::Int32 packetType, sf::Packet* packet)
         break;
     case Server::MESSAGE:
         break;
+    case Server::START_GAME:
+        int numberOfPlayers=0;
+
+        *packet >> tmp32;
+        numberOfPlayers=tmp32;
+
+        std::cout << "GAME STARTING!! with " << numberOfPlayers << " players\n";
+        for(int j=0; j<numberOfPlayers; j++)
+        {
+            *packet >> tmp32;
+            if(tmp32 == playerId)
+            {
+                *packet >> tmp32;
+                playerId = tmp32;
+                break;
+            }
+            *packet >> tmp32;
+        }
+        std::cout << "this playerId = " << playerId << "\n";
+        requestStackSwap(States::ID::GAME, playerId, numberOfPlayers, socket, server);
     }
 }
 
@@ -193,7 +220,13 @@ void LobbyState::loadTextures()
 void LobbyState::updateNumPlayersText()
 {
     std::stringstream ss;
-    std::cout << "\t\t changing number of players " << numPlayers << "\n";
     ss << numPlayersStr << numPlayers;
     numPlayersText.setString(ss.str());
+}
+
+void LobbyState::sendStartGameMessage()
+{
+    sf::Packet packet;
+    packet << static_cast<sf::Int32>(Client::START_GAME);
+    socket->send(packet);
 }

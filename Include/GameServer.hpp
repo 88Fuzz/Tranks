@@ -46,6 +46,7 @@ private:
     void handleIncomingPackets();
     void handleIncomingPacket(sf::Packet*, RemoteConnection*, bool*);
     void handleDisconnections();
+    void sendGameStartMessage();
     void tick();
     sf::Int16 incrementPlayerScore(sf::Int32, sf::Int16);
     sf::Time now() const;
@@ -67,6 +68,10 @@ private:
     //Used to track the next connection in clientConnections
     int connectedPlayers;
     sf::Clock serverClock;
+
+    //Used to keep track of the next playerIdentifier, will not repeat if player leaves.
+    //Once the game leaves lobby, these will be changed to the correct 1-4 numbers
+    int playerIdentifierCount;
 
     //was mAircraftInfo
     std::map<sf::Int32, PlayerInfo *> playerInfoMap;

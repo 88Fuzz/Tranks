@@ -21,15 +21,17 @@ private:
     void handlePacket(sf::Int32, sf::Packet*);
     void loadTextures();
     void updateNumPlayersText();
+    void sendStartGameMessage();
 
     static const std::string numPlayersStr;
     GUI::Container buttons;
     sf::Text numPlayersText;
-    GameServer server;
-    sf::TcpSocket socket;
+    GameServer* server;
+    sf::TcpSocket* socket;
     bool isHost;
     bool socketConnected;
     sf::Int16 numPlayers;
+    int playerId;
 };
 
 #endif

@@ -1,4 +1,5 @@
 #include "StateStack.hpp"
+#include "GameState.hpp"
 #include <iostream>
 
 StateStack::StateStack(State::Context context) :
@@ -45,6 +46,11 @@ void StateStack::swapState(States::ID stateID)
     actionList.push_back(PendingChange(Pop));
     actionList.push_back(PendingChange(Push, stateID));
 }
+void StateStack::swapState(States::ID stateId, int playerId, int numberOfPlayers, sf::TcpSocket *socket, GameServer *server)
+{
+    actionList.push_back(PendingChange(Pop));
+    actionList.push_back(PendingChange(Push, stateId, playerId, numberOfPlayers, socket, server));
+}
 void StateStack::pushState(States::ID stateID)
 {
     actionList.push_back(PendingChange(Push, stateID));
@@ -75,7 +81,6 @@ State* StateStack::createState(States::ID stateID)
 
 void StateStack::destroyState(State *state)
 {
-            std::cout << "destroied?\n";
     delete state;
 }
 
@@ -86,11 +91,13 @@ void StateStack::applyPendingChanges()
         switch((*it).action)
         {
         case Push:
-            stateStack.push_back(createState((*it).stateID));
+            if((*it).stateID == States::ID::GAME)
+                stateStack.push_back(new GameState(this, context, (*it).playerId, (*it).numberOfPlayers, (*it).socket, (*it).server));
+            else
+                stateStack.push_back(createState((*it).stateID));
             break;
 
         case Pop:
-            std::cout << "destroy?\n";
             delete stateStack.back();
             stateStack.pop_back();
             break;
@@ -106,7 +113,7 @@ void StateStack::applyPendingChanges()
     actionList.clear();
 }
 
-StateStack::PendingChange::PendingChange(Action action, States::ID stateID) :
-        action(action), stateID(stateID)
+StateStack::PendingChange::PendingChange(Action action, States::ID stateID, int playerId, int numberOfPlayers, sf::TcpSocket *socket, GameServer *server) :
+        action(action), stateID(stateID), playerId(playerId), numberOfPlayers(numberOfPlayers), socket(socket), server(server)
 {
 }

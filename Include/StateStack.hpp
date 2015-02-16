@@ -4,8 +4,10 @@
 #include "State.hpp"
 #include "StateIdentifiers.hpp"
 #include "ResourceIdentifiers.hpp"
+#include "GameServer.hpp"
 #include <SFML/System/NonCopyable.hpp>
 #include <SFML/System/Time.hpp>
+#include <SFML/Network/Packet.hpp>
 #include <vector>
 #include <utility>
 #include <functional>
@@ -39,6 +41,7 @@ public:
     void handleEvent(const sf::Event*);
 
     void swapState(States::ID);
+    void swapState(States::ID, int, int, sf::TcpSocket*, GameServer *);
     void pushState(States::ID);
     void popState();
     void clearStates();
@@ -48,10 +51,16 @@ public:
 private:
     struct PendingChange
     {
-        explicit PendingChange(Action action, States::ID stateID = States::NONE);
+        //TODO this should be done MUCH better. Pass in a generic map that can be used for any state
+        explicit PendingChange(Action action, States::ID stateID = States::NONE, int playerId = 0, int numberOfPlayers =
+                0, sf::TcpSocket *socket = NULL, GameServer *server = NULL);
 
         Action action;
         States::ID stateID;
+        int playerId;
+        int numberOfPlayers;
+        sf::TcpSocket *socket;
+        GameServer *server;
     };
 
     std::vector<State *> stateStack;
@@ -78,7 +87,7 @@ void StateStack::registerState(States::ID stateID)
     };
 }
 
-template <typename T, typename Param1>
+template<typename T, typename Param1>
 void StateStack::registerState(States::ID stateID, Param1 arg1)
 {
     factories[stateID] = [this, arg1] ()
@@ -95,6 +104,5 @@ void StateStack::registerState(States::ID stateID, Param1 arg1)
 //        return (new T(*this, context, arg1));
 //    };
 //}
-
 
 #endif

@@ -3,7 +3,10 @@
 #include "Bullet.hpp"
 #include "Button.hpp"
 #include "ButtonTypes.hpp"
+#include "NetworkProtocol.hpp"
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Network/TcpSocket.hpp>
+#include <SFML/Network/Packet.hpp>
 #include <algorithm>
 #include <stdlib.h>
 #include <cmath>
@@ -12,7 +15,8 @@
 
 //TODO clean up this code
 
-World::World(sf::RenderWindow* outputTarget, FontHolder* fonts) :
+World::World(sf::RenderWindow* outputTarget, FontHolder* fonts, int playerId, int numberOfPlayers,
+        sf::TcpSocket *socket) :
                 window(outputTarget),
                 sceneTexture(),
                 worldView(outputTarget->getDefaultView()),
@@ -26,24 +30,22 @@ World::World(sf::RenderWindow* outputTarget, FontHolder* fonts) :
                 sendCommandBox(),
                 playersReady(0),
                 currState(IDLE),
-                tileSize(0)
+                tileSize(0),
+                numPlayers(numberOfPlayers),
+                playerId(playerId),
+                socket(socket)
 {
     sceneTexture.create(window->getSize().x, window->getSize().y);
 
     loadTextures();
 
-    //TODO make numPlayers variable
-    numPlayers = 4;
-    for(int j = 0; j < MapCreator::PLAYER_COUNT; j++)
+    for(int j = 0; j < numPlayers; j++)
     {
         players.push_back(new Player(j, &textures));
         pendingPlayerCommands.push_back(GUI::ButtonTypes::CHECK_BOX);
     }
 
     buildScene();
-    //TODO figure out if this is needed
-    // Prepare the view
-//	worldView.setCenter(mSpawnPosition);
 }
 
 World::~World()
@@ -51,8 +53,46 @@ World::~World()
     if(map != NULL)
         delete map;
 
-    for(int j = 0; j < players.size(); j++)
+    for(int j = 0; j < numPlayers; j++)
         delete players[j];
+}
+
+void World::handlePacket(sf::Int32 packetType, sf::Packet* packet)
+{
+    sf::Int32 tmp32;
+    sf::Int16 tmp16;
+    int player;
+    int command;
+
+    switch(packetType)
+    {
+    case Server::PLAYER_DISCONNECT:
+        std::cerr << "Someone left, WHAT DO I DO!?\n";
+        break;
+    case Server::PLAYER_ACTION:
+    case Server::PLAYER_KILL:
+    case Server::PLAYER_SCORE:
+        *packet >> tmp32;
+        player = tmp32;
+        *packet >> tmp16;
+        command = tmp16;
+        if(player < numPlayers && tmp32 < GUI::ButtonTypes::BUTTON_TYPES_COUNT)
+        {
+            playersReady++;
+            pendingPlayerCommands[player] = static_cast<GUI::ButtonTypes>(command);
+        }
+        else
+            std::cerr << "Action from player " << player << " is greater than " << numPlayers
+                    << " or not a valid action " << command << "\n";
+
+        break;
+    case Server::GAME_OVER:
+        std::cerr << "Why am I getting this message " << packetType << ", shouldn't be here\n";
+        break;
+        //TODO figure out how to handle these
+    case Server::MESSAGE:
+        break;
+    }
 }
 
 void World::update(sf::Time dt)
@@ -62,19 +102,20 @@ void World::update(sf::Time dt)
     // Scroll the world, reset player velocity
 //	worldView.move(0.f, mScrollSpeed * dt.asSeconds());
 
-    // Forward commands to scene graph, adapt velocity (scrolling, diagonal correction)
+// Forward commands to scene graph, adapt velocity (scrolling, diagonal correction)
 //	while (!mCommandQueue.isEmpty())
 //		sceneGraph.onCommand(mCommandQueue.pop(), dt);
 //    adaptPlayerVelocity();
 
-    // Collision detection and response (may destroy entities)
+// Collision detection and response (may destroy entities)
 //	handleCollisions();
 
-    // Remove all destroyed entities, create new ones
+// Remove all destroyed entities, create new ones
 //	sceneGraph.removeWrecks();
 
-    //TODO un-comment this statement
+//TODO un-comment this statement
 //    if(players.size() == pendingPlayerCommands.size())
+
     if(currState == IDLE)
     {
         if(playersReady == numPlayers)
@@ -107,19 +148,19 @@ void World::update(sf::Time dt)
 
         if(completed == numPlayers)
         {
-            if(currState==MOVE_ACTIONS)
+            if(currState == MOVE_ACTIONS)
             {
-                currState=SHOOT_ACTIONS;
+                currState = SHOOT_ACTIONS;
                 queueShootActions();
             }
             else
-                currState=END_ACTIONS;
+                currState = END_ACTIONS;
         }
     }
 
     if(currState == END_ACTIONS)
     {
-        for(int j=0;j<numPlayers;j++)
+        for(int j = 0; j < numPlayers; j++)
         {
             if(!players[j]->isAlive())
                 players[j]->incrementDeathClock();
@@ -129,8 +170,6 @@ void World::update(sf::Time dt)
 
         currState = IDLE;
     }
-    //TODO Change this to use variable number of players
-
     // Regular update step, adapt position (correct if outside view)
     sceneGraph.update(dt);
 }
@@ -146,11 +185,11 @@ void World::draw()
 void World::queueShootActions()
 {
     Command *command;
-    for(int j = 0; j < pendingPlayerCommands.size(); j++)
+    for(int j = 0; j < numPlayers; j++)
     {
         if(players[j]->isAlive())
         {
-            if(pendingPlayerCommands[j]==GUI::ButtonTypes::FIRE)
+            if(pendingPlayerCommands[j] == GUI::ButtonTypes::FIRE)
             {
                 command = new Command();
                 command->category = Category::Type::NONE;
@@ -170,7 +209,7 @@ void World::queueShootActions()
 void World::queueMovementActions()
 {
     Command *command;
-    for(int j = 0; j < pendingPlayerCommands.size(); j++)
+    for(int j = 0; j < numPlayers; j++)
     {
         if(players[j]->isAlive())
         {
@@ -182,17 +221,17 @@ void World::queueMovementActions()
                 command->action = [=]()
                 {
                     sf::Vector2i tilePos = players[j]->getTilePos();
-                    //TODO logging
+
                     //Remove player from its parent node
-                    if(map->removePlayerChildNode(MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth))==NULL)
+                        if(map->removePlayerChildNode(MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth))==NULL)
                         std::cerr << "Shit be horribly broken\n";
 
-                    //get player's new tilePos, and attach it to the new parent node
-                    tilePos = players[j]->getTilePos(1);
+                        //get player's new tilePos, and attach it to the new parent node
+                        tilePos = players[j]->getTilePos(1);
 
-                    map->layerChildNode(players[j],MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth));
-                    players[j]->startMovement(Player::SINGLE_MOVE);
-                };
+                        map->layerChildNode(players[j],MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth));
+                        players[j]->startMovement(Player::SINGLE_MOVE);
+                    };
                 commandQueue.push(command);
                 break;
             case GUI::ButtonTypes::MOVE_DOUBLE:
@@ -201,16 +240,16 @@ void World::queueMovementActions()
                 command->action = [=]()
                 {
                     sf::Vector2i tilePos = players[j]->getTilePos();
-                    //TODO logging
+
                     //Remove player from its parent node
-                    if(map->removePlayerChildNode(MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth))==NULL)
+                        if(map->removePlayerChildNode(MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth))==NULL)
                         std::cerr << "Shit be horribly broken\n";
 
-                    tilePos = players[j]->getTilePos(2);
+                        tilePos = players[j]->getTilePos(2);
 
-                    map->layerChildNode(players[j],MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth));
-                    players[j]->startMovement(Player::DOUBLE_MOVE);
-                };
+                        map->layerChildNode(players[j],MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth));
+                        players[j]->startMovement(Player::DOUBLE_MOVE);
+                    };
                 commandQueue.push(command);
                 break;
             case GUI::ButtonTypes::ROTATE_HALF_CLOCKWISE:
@@ -251,7 +290,7 @@ void World::validateMoves()
     sf::Vector2i tilePos;
     sf::Vector2i pendingLocations[pendingPlayerCommands.size()];
 
-    for(int j = 0; j < pendingPlayerCommands.size(); j++)
+    for(int j = 0; j < numPlayers; j++)
     {
         pendingLocations[j] = players[j]->getTilePos();
         switch(pendingPlayerCommands[j])
@@ -322,7 +361,8 @@ bool World::validateAction(Player *player, int numMoves)
             return false;
         if(tilePos.x < 0 || tilePos.x > mapTileWidth - 1)
             return false;
-        if(map->getChildNode(MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth), Category::Type::MOVEMENT_SPACE) == NULL)
+        if(map->getChildNode(MapCreator::get1d(tilePos.x, tilePos.y, mapTileWidth),
+                Category::Type::MOVEMENT_SPACE) == NULL)
             return false;
     }
 
@@ -360,11 +400,11 @@ void World::adaptPlayerVelocity()
 {
 //	sf::Vector2f velocity = mPlayerAircraft->getVelocity();
 
-    // If moving diagonally, reduce velocity (to have always same velocity)
+// If moving diagonally, reduce velocity (to have always same velocity)
 //	if (velocity.x != 0.f && velocity.y != 0.f)
 //		mPlayerAircraft->setVelocity(velocity / std::sqrt(2.f));
 
-    // Add scrolling velocity
+// Add scrolling velocity
 //	mPlayerAircraft->accelerate(0.f, mScrollSpeed);
 }
 
@@ -394,20 +434,18 @@ void World::buildScene()
 
     //TODO Make this an ID like textures and fonts
     mc.generate("Media/Maps/test.xml");
-//    BoardPiece *board = mc.getMap();
     map = mc.getMap();
     sceneGraph.attachChild(map);
     mapTileWidth = mc.getMapWidth();
     mapTileHeight = mc.getMapHeight();
-    int buttonX = 1600;
+    int buttonX = 1300;
     int buttonY = 200;
 
     tileSize = mc.getTileWidth();
 
-    for(int j = 0; j < players.size(); j++)
+    for(int j = 0; j < numPlayers; j++)
     {
         //Set map boarders
-        //TODO player doesn't need map width/height anymore
         players[j]->setMapWidth(mapTileWidth);
         players[j]->setMapHeight(mapTileHeight);
         //Set player spawn position to the vector location
@@ -415,13 +453,11 @@ void World::buildScene()
         players[j]->setSpawnPos(mc.getPlayerSpawnPos(j), mc.getPlayerSpawnFacing(j));
         players[j]->setMap(map);
 
-
         //The player's spawn is in screen coordinates but in order to place it in the screen graph, it needs
         //the vector position, so get spawn position from mapCreator
         if(!map->layerChildNode(players[j],
                 MapCreator::get1d(mc.getPlayerSpawnPos(j).x, mc.getPlayerSpawnPos(j).y, mapTileWidth)))
             std::cout << "you dun fuck up\n";
-//        map.layerChildNode(&players[j], mc.get1d(players[j].getSpawnPositionX(), players[j].getSpawnPositionY()));
     }
 
     //Button initialization
@@ -429,30 +465,34 @@ void World::buildScene()
     GUI::Button *tmpButton = new GUI::Button(tmpContext, GUI::ButtonTypes::MOVE_DOUBLE, buttonX, buttonY, 100, 100);
     tmpButton->setCallback([&] ()
     {
-        pendingPlayerCommands[0] = GUI::ButtonTypes::MOVE_DOUBLE;
-        playersReady++;
-        generatePlayerMoves();
-    });
+        sendMoveToServer(GUI::ButtonTypes::MOVE_DOUBLE);
+        //Commented out single player setup
+//        pendingPlayerCommands[0] = GUI::ButtonTypes::MOVE_DOUBLE;
+//        playersReady++;
+//        generatePlayerMoves();
+        });
     trankControls.pack(tmpButton);
     buttonY += 100;
 
     tmpButton = new GUI::Button(tmpContext, GUI::ButtonTypes::MOVE_SINGLE, buttonX, buttonY, 100, 100);
     tmpButton->setCallback([&] ()
     {
-        pendingPlayerCommands[0] = GUI::ButtonTypes::MOVE_SINGLE;
-        playersReady++;
-        generatePlayerMoves();
-    });
+        sendMoveToServer(GUI::ButtonTypes::MOVE_SINGLE);
+//        pendingPlayerCommands[0] = GUI::ButtonTypes::MOVE_SINGLE;
+//        playersReady++;
+//        generatePlayerMoves();
+        });
     trankControls.pack(tmpButton);
     buttonX += 100;
 
     tmpButton = new GUI::Button(tmpContext, GUI::ButtonTypes::CHECK_BOX, buttonX, buttonY, 100, 100);
     tmpButton->setCallback([&] ()
     {
-        pendingPlayerCommands[0] = GUI::ButtonTypes::CHECK_BOX;
-        playersReady++;
-        generatePlayerMoves();
-    });
+        sendMoveToServer(GUI::ButtonTypes::CHECK_BOX);
+//        pendingPlayerCommands[0] = GUI::ButtonTypes::CHECK_BOX;
+//        playersReady++;
+//        generatePlayerMoves();
+        });
     sendCommandBox.pack(tmpButton);
     buttonX -= 100;
     buttonY += 100;
@@ -460,30 +500,33 @@ void World::buildScene()
     tmpButton = new GUI::Button(tmpContext, GUI::ButtonTypes::ROTATE_FULL, buttonX, buttonY, 100, 100);
     tmpButton->setCallback([&] ()
     {
-        pendingPlayerCommands[0] = GUI::ButtonTypes::ROTATE_FULL;
-        playersReady++;
-        generatePlayerMoves();
-    });
+        sendMoveToServer(GUI::ButtonTypes::ROTATE_FULL);
+//        pendingPlayerCommands[0] = GUI::ButtonTypes::ROTATE_FULL;
+//        playersReady++;
+//        generatePlayerMoves();
+        });
     trankControls.pack(tmpButton);
     buttonX -= 100;
 
     tmpButton = new GUI::Button(tmpContext, GUI::ButtonTypes::ROTATE_HALF_COUNTER, buttonX, buttonY, 100, 100);
     tmpButton->setCallback([&] ()
     {
-        pendingPlayerCommands[0] = GUI::ButtonTypes::ROTATE_HALF_COUNTER;
-        playersReady++;
-        generatePlayerMoves();
-    });
+        sendMoveToServer(GUI::ButtonTypes::ROTATE_HALF_COUNTER);
+//        pendingPlayerCommands[0] = GUI::ButtonTypes::ROTATE_HALF_COUNTER;
+//        playersReady++;
+//        generatePlayerMoves();
+        });
     trankControls.pack(tmpButton);
     buttonX += 200;
 
     tmpButton = new GUI::Button(tmpContext, GUI::ButtonTypes::ROTATE_HALF_CLOCKWISE, buttonX, buttonY, 100, 100);
     tmpButton->setCallback([&] ()
     {
-        pendingPlayerCommands[0] = GUI::ButtonTypes::ROTATE_HALF_CLOCKWISE;
-        playersReady++;
-        generatePlayerMoves();
-    });
+        sendMoveToServer(GUI::ButtonTypes::ROTATE_HALF_CLOCKWISE);
+//        pendingPlayerCommands[0] = GUI::ButtonTypes::ROTATE_HALF_CLOCKWISE;
+//        playersReady++;
+//        generatePlayerMoves();
+        });
     trankControls.pack(tmpButton);
     buttonX -= 100;
     buttonY += 100;
@@ -491,10 +534,11 @@ void World::buildScene()
     tmpButton = new GUI::Button(tmpContext, GUI::ButtonTypes::FIRE, buttonX, buttonY, 100, 100);
     tmpButton->setCallback([&] ()
     {
-        pendingPlayerCommands[0] = GUI::ButtonTypes::FIRE;
-        playersReady++;
-        generatePlayerMoves();
-    });
+        sendMoveToServer(GUI::ButtonTypes::FIRE);
+//        pendingPlayerCommands[0] = GUI::ButtonTypes::FIRE;
+//        playersReady++;
+//        generatePlayerMoves();
+        });
     trankControls.pack(tmpButton);
 
 //    trankControls.pack()
@@ -577,16 +621,25 @@ sf::FloatRect World::getBattlefieldBounds() const
  */
 void World::generatePlayerMoves()
 {
-    for(int j=1; j<numPlayers; j++)
+    for(int j = 1; j < numPlayers; j++)
     {
-        int randNum = rand()%6;
+        int randNum = rand() % 6;
 
         //If 5 is selected, the command is shoot, don't let computers shoot
-        if(randNum==5)
-            randNum=6;
+        if(randNum == 5)
+            randNum = 6;
 
         GUI::ButtonTypes command = static_cast<GUI::ButtonTypes>(5);
         pendingPlayerCommands[j] = command;
         playersReady++;
     }
+}
+
+void World::sendMoveToServer(GUI::ButtonTypes action)
+{
+    sf::Packet packet;
+
+    //doing nothing does not send a command to do nothing
+    packet << INT32(Client::ACTION) << INT32(playerId) << INT16(action);
+    socket->send(packet);
 }

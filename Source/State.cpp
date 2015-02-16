@@ -20,6 +20,11 @@ void State::requestStackSwap(States::ID stateID)
     stack->swapState(stateID);
 }
 
+void State::requestStackSwap(States::ID stateId, int playerId, int numberOfPlayers, sf::TcpSocket* socket, GameServer *server)
+{
+    stack->swapState(stateId, playerId, numberOfPlayers, socket, server);
+}
+
 void State::requestStackPush(States::ID stateID)
 {
     stack->pushState(stateID);

@@ -13,6 +13,7 @@
 #include <SFML/Graphics/View.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/RenderTexture.hpp>
+#include <SFML/Network/Packet.hpp>
 #include <queue>
 
 // Forward declaration
@@ -24,11 +25,12 @@ namespace sf
 class World: private sf::NonCopyable
 {
 public:
-    World(sf::RenderWindow*, FontHolder*);
+    World(sf::RenderWindow*, FontHolder*, int, int, sf::TcpSocket*);
     virtual ~World();
     void update(sf::Time);
     void draw();
     void handleEvent(const sf::Event*);
+    void handlePacket(sf::Int32, sf::Packet*);
 
 //    CommandQueue* getCommandQueue();
 
@@ -50,9 +52,11 @@ private:
         LAYERCOUNT
     };
 
-    //TODO change this to the number of players
+    int playerId;
     int numPlayers;
     int playersReady;
+
+    sf::TcpSocket *socket;
 
     //number of tiles in the width of the map
     int mapTileWidth;
@@ -98,6 +102,7 @@ private:
     sf::FloatRect getBattlefieldBounds() const;
     bool validateAction(Player *, int);
     void generatePlayerMoves();
+    void sendMoveToServer(GUI::ButtonTypes);
 };
 
 #endif

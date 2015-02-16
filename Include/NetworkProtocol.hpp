@@ -1,8 +1,10 @@
 #ifndef __NETWORKPROTOCOL_HPP__
 #define __NETWORKPROTOCOL_HPP__
 
+#define INT32(x) static_cast<sf::Int32>(x)
+#define INT16(x) static_cast<sf::Int16>(x)
 const unsigned short SERVER_PORT = 5000;
-const unsigned short MAX_PLAYERS = 16;
+const unsigned short MAX_PLAYERS = 4;
 
 namespace Server
 {
@@ -16,6 +18,7 @@ namespace Server
         PLAYER_ACTION,      //format: [Int32:packetType] [Int32:playerIdentifier] [Int16:GUI::ButtonTypes]
         PLAYER_KILL,        //format: [Int32:packetType] [Int32:playerIdentifier doing killing] [Int32:playerIdentifier killed player] [Int16:player doing killing score]
         PLAYER_SCORE,       //format: [Int32:packetType] [Int32:playerIdentifier] [Int16:playerIdentifier score]
+        START_GAME,         //format: [Int32:packetType] [Int32:numberOfPlayers] [Int32:old playerIdentifier] [Int32:new playerIdentifier]
         MESSAGE,
         GAME_OVER           //format: [Int32:packetType] [Int16:number of winners] [Int32:playerIdentifier of winner] [Int32:playerIdentifier of winner]...
     };
@@ -31,6 +34,7 @@ namespace Client
         ACTION,     //format: [Int32:packetType] [Int32:playerIdentifier] [Int16:GUI::ButtonTypes]
         KILL,       //format: [Int32:packetType] [Int32:playerIdentifier doing killing] [Int32:playerIdentifier killed player] [Int16:player doing killing score]
         SCORE,      //format: [Int32:packetType] [Int32:playerIdentifier] [Int16:playerIdentifier score]
+        START_GAME, //format: [Int32:packetType]
         CHANGE_MAX_SCORE,
         MESSAGE
     };
