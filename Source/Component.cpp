@@ -4,7 +4,7 @@ namespace GUI
 {
 
     Component::Component() :
-            selected(false), active(false)
+            selected(false), active(false), deselectable(true)
     {
     }
 
@@ -42,4 +42,13 @@ namespace GUI
         active = false;
     }
 
+    bool Component::isDeselectable()
+    {
+        return deselectable;
+    }
+
+     void Component::setDeselectable(bool value)
+     {
+         deselectable = value;
+     }
 }

@@ -11,6 +11,11 @@
 namespace GUI
 {
     Button::Button(State::Context context, int enumButton, int x, int y, int width, int height) :
+            Button(context, enumButton, x, y, width, height, true)
+    {
+    }
+
+    Button::Button(State::Context context, int enumButton, int x, int y, int width, int height, bool deselectable) :
                     callbackFunc(NULL),
                     text("", context.fonts->get(Fonts::Sansation), 48),
                     window(context.window),
@@ -28,6 +33,7 @@ namespace GUI
         //TODO change to vector. yo
         free(table);
 
+        setDeselectable(deselectable);
         changeTexture(NORMAL);
     }
 
@@ -45,7 +51,7 @@ namespace GUI
     void Button::centerText()
     {
         sf::Vector2f pos = sprite.getPosition();
-        text.setPosition(pos.x + sprite.getWidth()/8, pos.y + sprite.getHeight()/6);
+        text.setPosition(pos.x + sprite.getWidth() / 8, pos.y + sprite.getHeight() / 6);
     }
 
     void Button::setToggle(bool flag)
@@ -118,7 +124,7 @@ namespace GUI
             if(checkMouseClickLocation(buttonPos, mousePos))
             {
                 //if mouse clicked on button, check if button is selected. If already selected, unselect
-                if(isSelected())
+                if(isSelected() && isDeselectable())
                     deselect();
                 else
                     select();
@@ -157,5 +163,10 @@ namespace GUI
         newTextureRect.height = buttonHeight;
 
         sprite.setTextureRect(newTextureRect);
+    }
+
+    bool Button::isDeselectable()
+    {
+        Component::isDeselectable();
     }
 }

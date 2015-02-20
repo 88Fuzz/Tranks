@@ -28,6 +28,7 @@ namespace GUI
         };
 
         Button(State::Context, int, int, int, int, int);
+        Button(State::Context, int, int, int, int, int, bool);
 
         void setCallback(Callback);
         void setText(const std::string);
@@ -39,6 +40,7 @@ namespace GUI
 
         virtual void activate();
         virtual void deactivate();
+        virtual bool isDeselectable();
 
         void trigger();
 
@@ -56,6 +58,8 @@ namespace GUI
         bool toggle;
         int buttonWidth;
         int buttonHeight;
+
+        bool deselectable;
         //Used to keep track of original y coordinate of button in texture sheet so that the texture can change state correctly
         int yOffset;
         //Used to get mouse position

@@ -12,6 +12,7 @@
 #include <cmath>
 #include <limits>
 #include <iostream>
+#include <sstream>
 
 //TODO clean up this code
 
@@ -33,8 +34,11 @@ World::World(sf::RenderWindow* outputTarget, FontHolder* fonts, int playerId, in
                 tileSize(0),
                 numPlayers(numberOfPlayers),
                 playerId(playerId),
-                socket(socket)
+                socket(socket),
+                flagPos(),
+                lastPlayerOnFlag(NULL)
 {
+    sf::Color color;
     sceneTexture.create(window->getSize().x, window->getSize().y);
 
     loadTextures();
@@ -43,6 +47,29 @@ World::World(sf::RenderWindow* outputTarget, FontHolder* fonts, int playerId, in
     {
         players.push_back(new Player(j, &textures));
         pendingPlayerCommands.push_back(GUI::ButtonTypes::CHECK_BOX);
+        playerStatus.push_back(GUI::ButtonTypes::NOT_READY);
+        pastPlayerCommands.push_back(GUI::ButtonTypes::CHECK_BOX);
+
+        statusText.push_back(sf::Text("", fonts->get(Fonts::Sansation), 18));
+        scoreText.push_back(sf::Text("", fonts->get(Fonts::Sansation), 18));
+
+        switch(j)
+        {
+        case 0:
+            color = sf::Color::Red;
+            break;
+        case 1:
+            color = sf::Color::Blue;
+            break;
+        case 2:
+            color = sf::Color::Green;
+            break;
+        case 3:
+            color = sf::Color::Yellow;
+            break;
+        }
+        statusText.back().setColor(color);
+        scoreText.back().setColor(color);
     }
 
     buildScene();
@@ -69,16 +96,28 @@ void World::handlePacket(sf::Int32 packetType, sf::Packet* packet)
     case Server::PLAYER_DISCONNECT:
         std::cerr << "Someone left, WHAT DO I DO!?\n";
         break;
-    case Server::PLAYER_ACTION:
     case Server::PLAYER_KILL:
+        break;
     case Server::PLAYER_SCORE:
+        *packet >> tmp32;
+        player = tmp32;
+        *packet >> tmp16;
+        players[player]->setScore(tmp16);
+        updateScore(player, tmp16);
+        break;
+    case Server::PLAYER_ACTION:
         *packet >> tmp32;
         player = tmp32;
         *packet >> tmp16;
         command = tmp16;
         if(player < numPlayers && tmp32 < GUI::ButtonTypes::BUTTON_TYPES_COUNT)
         {
-            playersReady++;
+            if(playerStatus[player] == GUI::ButtonTypes::NOT_READY)
+            {
+                playersReady++;
+                playerStatus[player] = GUI::ButtonTypes::READY;
+                formatStatus();
+            }
             pendingPlayerCommands[player] = static_cast<GUI::ButtonTypes>(command);
         }
         else
@@ -162,6 +201,9 @@ void World::update(sf::Time dt)
     {
         for(int j = 0; j < numPlayers; j++)
         {
+            playerStatus[j] = GUI::ButtonTypes::NOT_READY;
+            pastPlayerCommands[j] = pendingPlayerCommands[j];
+
             if(!players[j]->isAlive())
                 players[j]->incrementDeathClock();
         }
@@ -169,6 +211,26 @@ void World::update(sf::Time dt)
         sendCommandBox.deselect();
 
         currState = IDLE;
+        formatStatus();
+
+        //Check player specific actions to send info to the server
+        if(!players[playerId]->isAlive())
+        {
+            sendMessageToServer((sf::Packet() << INT32(Client::ACTION) << INT32(playerId) << INT16(GUI::ButtonTypes::CHECK_BOX)));
+        }
+
+        if(players[playerId]->didScore())
+        {
+            sendMessageToServer(sf::Packet() << INT32(Client::SCORE) << INT32(playerId) << INT16(players[playerId]->getScore()));
+        }
+
+        Player *scoringPlayer;
+        if((scoringPlayer = (Player*) map->getChildNode(MapCreator::get1d(flagPos.x, flagPos.y, mapTileWidth), Category::Type::PLAYER, 1)) != NULL)
+        {
+            if(lastPlayerOnFlag == scoringPlayer)
+                sendMessageToServer(sf::Packet() << INT32(Client::SCORE) << INT32(scoringPlayer->getPlayerNum()) << INT16(scoringPlayer->getScore(1)));
+        }
+        lastPlayerOnFlag = scoringPlayer;
     }
     // Regular update step, adapt position (correct if outside view)
     sceneGraph.update(dt);
@@ -180,6 +242,12 @@ void World::draw()
     window->draw(sceneGraph);
     window->draw(trankControls);
     window->draw(sendCommandBox);
+
+    for(int j=0; j < numPlayers; j++)
+    {
+        window->draw(statusText[j]);
+        window->draw(scoreText[j]);
+    }
 }
 
 void World::queueShootActions()
@@ -420,7 +488,7 @@ void World::handleEvent(const sf::Event* event)
                 if((selected = trankControls.getSelectedComponent()) != NULL)
                     ((GUI::Button*) selected)->trigger();
                 else
-                    std::cout << "Nothing selected\n";
+                    sendMoveToServer(GUI::ButtonTypes::CHECK_BOX);
             }
         }
     }
@@ -438,8 +506,9 @@ void World::buildScene()
     sceneGraph.attachChild(map);
     mapTileWidth = mc.getMapWidth();
     mapTileHeight = mc.getMapHeight();
+    flagPos = mc.getFlagPos();
     int buttonX = 1300;
-    int buttonY = 200;
+    int buttonY = 0;
 
     tileSize = mc.getTileWidth();
 
@@ -485,7 +554,7 @@ void World::buildScene()
     trankControls.pack(tmpButton);
     buttonX += 100;
 
-    tmpButton = new GUI::Button(tmpContext, GUI::ButtonTypes::CHECK_BOX, buttonX, buttonY, 100, 100);
+    tmpButton = new GUI::Button(tmpContext, GUI::ButtonTypes::CHECK_BOX, buttonX, buttonY, 100, 100, false);
     tmpButton->setCallback([&] ()
     {
         sendMoveToServer(GUI::ButtonTypes::CHECK_BOX);
@@ -540,6 +609,25 @@ void World::buildScene()
 //        generatePlayerMoves();
         });
     trankControls.pack(tmpButton);
+
+    buttonY += 130;
+    buttonX -= 100;
+
+    for(int j=0; j < numPlayers; j++)
+    {
+        scoreText[j].setPosition(buttonX, buttonY);
+        buttonY += 20;
+    }
+
+    buttonY += 30;
+    for(int j=0; j < numPlayers; j++)
+    {
+        statusText[j].setPosition(buttonX, buttonY);
+        buttonY += 20;
+    }
+
+    formatStatus();
+    initScore();
 
 //    trankControls.pack()
 
@@ -637,9 +725,72 @@ void World::generatePlayerMoves()
 
 void World::sendMoveToServer(GUI::ButtonTypes action)
 {
-    sf::Packet packet;
+    sendMessageToServer((sf::Packet() << INT32(Client::ACTION) << INT32(playerId) << INT16(action)));
+}
 
-    //doing nothing does not send a command to do nothing
-    packet << INT32(Client::ACTION) << INT32(playerId) << INT16(action);
+void World::sendMessageToServer(sf::Packet packet)
+{
     socket->send(packet);
+}
+
+void World::formatStatus()
+{
+    std::stringstream ss;
+    for(int j=0; j < numPlayers; j++)
+    {
+        ss << "Player " << j << " ";
+
+        switch(pastPlayerCommands[j])
+        {
+        case GUI::ButtonTypes::MOVE_SINGLE:
+            ss << "single move";
+            break;
+        case GUI::ButtonTypes::MOVE_DOUBLE:
+            ss << "double move";
+            break;
+        case GUI::ButtonTypes::ROTATE_HALF_CLOCKWISE:
+            ss << "clockwise rotation";
+            break;
+        case GUI::ButtonTypes::ROTATE_HALF_COUNTER:
+            ss << "counter-clockwise rotation";
+            break;
+        case GUI::ButtonTypes::ROTATE_FULL:
+            ss << "full rotation";
+            break;
+        case GUI::ButtonTypes::FIRE:
+            ss << "fire";
+            break;
+        case GUI::ButtonTypes::CHECK_BOX:
+            ss << "idle";
+            break;
+        }
+
+        ss << ": ";
+        switch(playerStatus[j])
+        {
+        case GUI::ButtonTypes::NOT_READY:
+            ss << "not ready";
+            break;
+        case GUI::ButtonTypes::READY:
+            ss << "ready";
+            break;
+        }
+        statusText[j].setString(ss.str());
+        ss.str(std::string());
+    }
+}
+
+void World::updateScore(int player, int score)
+{
+    std::stringstream ss;
+    ss << "Player " << player << " score: " << score;
+    scoreText[player].setString(ss.str());
+}
+
+void World::initScore()
+{
+    for(int j=0; j < numPlayers; j++)
+    {
+        updateScore(j,0);
+    }
 }

@@ -472,6 +472,7 @@ void MapCreator::parseFlag(rapidxml::xml_node<> *node)
         //TODO error check
         map->layerChildNode(new BoardPiece(Category::Type::FLAG, boardTextures, x * tileWidth, y * tileHeight),
                 MapCreator::get1d(x, y, mapWidth));
+        flagPos = sf::Vector2i(x,y);
     }
     else
     {
@@ -635,4 +636,9 @@ int MapCreator::get1d(int x, int y, int width)
 BoardPiece* MapCreator::getMap()
 {
     return map;
+}
+
+sf::Vector2i MapCreator::getFlagPos()
+{
+    return flagPos;
 }

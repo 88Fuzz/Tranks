@@ -45,8 +45,10 @@ public:
     void setScore(int);
     void addScore(int);
     int getScore();
+    int getScore(int);
     int getPlayerNum();
     void incrementDeathClock();
+    bool didScore();
 
 private:
     static constexpr float ROTATION_SPEED = 0.13;
@@ -81,6 +83,10 @@ private:
     Bullet *bullet;
     int playerNum;
     int score;
+
+    BoardPiece *map;
+    //True if score has updated this round
+    bool scored;
 
     //The amount of turns player has been dead
     int deathRespawnCount;

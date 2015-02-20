@@ -1,6 +1,7 @@
 #include "Player.hpp"
 #include "DataTables.hpp"
 #include "Utils.hpp"
+#include "MapCreator.hpp"
 #include <iostream>
 
 Player::Player(int playerNum, TextureHolder* textures) :
@@ -17,7 +18,9 @@ Player::Player(int playerNum, TextureHolder* textures) :
                 alive(true),
                 playerNum(playerNum),
                 score(0),
-                deathRespawnCount(0)
+                deathRespawnCount(0),
+                scored(false),
+                map(NULL)
 {
     TextureData* table = initializePlayerData();
     sprite = MySprite(textures->get(table[playerNum].textureId), table[playerNum].textureRect);
@@ -122,12 +125,15 @@ void Player::drawCurrent(sf::RenderTarget& target, sf::RenderStates states) cons
  */
 void Player::respawn()
 {
-    deathRespawnCount=0;
+    map->removePlayerChildNode(MapCreator::get1d(tilePos.x, tilePos.y, mapWidth));
+
+    deathRespawnCount = 0;
     setAlive(true);
     tilePos = spawnPos;
     sprite.setRotation(spawnFacing);
     forward = spawnFacing;
     sprite.setPosition(sf::Vector2f(spawnPos.x * tileSize, spawnPos.y * tileSize));
+    map->layerChildNode(this, MapCreator::get1d(tilePos.x, tilePos.y, mapWidth));
 }
 
 /*
@@ -321,11 +327,12 @@ void Player::startFire()
     bullet->setTileSize(tileSize);
 
     bullet->resetBounceTotal();
-    bullet->setSpawnPos(getTileCorrectedPos(1), getForwardDirection());
+    bullet->setSpawnPos(tmpPos, getForwardDirection());
 }
 
 void Player::setMap(BoardPiece *map)
 {
+    this->map = map;
     bullet->setMap(map);
 }
 
@@ -346,11 +353,27 @@ void Player::setScore(int newScore)
 
 void Player::addScore(int num)
 {
+    scored = true;
     score += num;
+}
+
+/*
+ * Checks if play has scored this round
+ */
+bool Player::didScore()
+{
+    return scored;
 }
 
 int Player::getScore()
 {
+    scored = false;
+    return score;
+}
+
+int Player::getScore(int inc)
+{
+    score += inc;
     return score;
 }
 

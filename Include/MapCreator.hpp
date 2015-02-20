@@ -24,6 +24,7 @@ public:
     int getTileWidth();
     int getHeight();
     int getTileHeight();
+    sf::Vector2i getFlagPos();
     static int get1d(int, int, int);
     sf::Vector2i getPlayerSpawnPos(int);
     Moveable::Direction getPlayerSpawnFacing(int);
@@ -33,6 +34,7 @@ private:
     int mapHeight;
     int tileWidth;
     int tileHeight;
+    sf::Vector2i flagPos;
     BoardPiece *map;
     TextureHolder *boardTextures;
     sf::Vector2i playerSpawns[PLAYER_COUNT];

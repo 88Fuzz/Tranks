@@ -5,9 +5,6 @@
 #include <stdlib.h>
 #include <iostream>
 
-#define PEEE(x) if(playerNum==0) \
-    x
-
 Bullet::Bullet(int playerNum, TextureHolder *textures) :
                 bounceTotal(BOUNCE_LIMIT + 1),
                 Moveable(Category::PLAYER, 0, 0, -1, Direction::NORTH),

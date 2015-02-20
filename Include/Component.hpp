@@ -26,10 +26,13 @@ namespace GUI
         virtual bool isActive() const;
         virtual void activate();
         virtual void deactivate();
+        virtual bool isDeselectable();
+        virtual void setDeselectable(bool);
 
         virtual bool handleEvent(const sf::Event*) = 0;
 
     private:
+        bool deselectable;
         bool selected;
         bool active;
     };

@@ -71,7 +71,7 @@ namespace GUI
                 {
                     if(children[j]->handleEvent(event))
                     {
-                        if(selectedChild >= 0)
+                        if(selectedChild >= 0 && children[selectedChild]->isDeselectable())
                             children[selectedChild]->deselect();
 
                         //If child is selected, set selectedChild, else reset to default

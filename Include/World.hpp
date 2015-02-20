@@ -14,6 +14,7 @@
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/RenderTexture.hpp>
 #include <SFML/Network/Packet.hpp>
+#include <SFML/Graphics/Text.hpp>
 #include <queue>
 
 // Forward declaration
@@ -75,6 +76,8 @@ private:
     FontHolder* fonts;
     std::vector<Player *> players;
     std::vector<GUI::ButtonTypes> pendingPlayerCommands;
+    std::vector<GUI::ButtonTypes> playerStatus;
+    std::vector<GUI::ButtonTypes> pastPlayerCommands;
     BoardPiece* map;
 
     SceneNode sceneGraph;
@@ -84,6 +87,12 @@ private:
     sf::FloatRect worldBounds;
     GUI::Container trankControls;
     GUI::Container sendCommandBox;
+
+    std::vector<sf::Text> statusText;
+    std::vector<sf::Text> scoreText;
+
+    sf::Vector2i flagPos;
+    Player *lastPlayerOnFlag;
 
     void loadTextures();
     void adaptPlayerPosition();
@@ -103,6 +112,10 @@ private:
     bool validateAction(Player *, int);
     void generatePlayerMoves();
     void sendMoveToServer(GUI::ButtonTypes);
+    void formatStatus();
+    void updateScore(int, int);
+    void initScore();
+    void sendMessageToServer(sf::Packet packet);
 };
 
 #endif

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <map>
     <board width="15" height="10" type="default" mode="koth">
-        <flag x="10" y="10"/>
+        <flag x="14" y="1"/>
         <spawn player="1" x="14" y="0" direction="S"/>
         <spawn player="2" x="0" y="2" direction="E"/>
         <spawn player="3" x="13" y="9" direction="N"/>

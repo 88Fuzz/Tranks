@@ -13,7 +13,10 @@ namespace GUI
         FIRE,
         CHECK_BOX,
         BIG_BUTTON,
-        BUTTON_TYPES_COUNT
+        BUTTON_TYPES_COUNT,
+        //Used for player status text
+        READY,
+        NOT_READY
     };
 }
 
