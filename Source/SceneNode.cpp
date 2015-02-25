@@ -3,10 +3,8 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <iostream>
 
-//TODO figure this out
 std::queue<SceneNode *> g_drawingQ;
 
-//TODO update with comments here
 SceneNode::SceneNode(Category::Type category) :
         children(), parent(NULL), type(category)
 {
@@ -14,9 +12,15 @@ SceneNode::SceneNode(Category::Type category) :
 
 SceneNode::~SceneNode()
 {
+    destroy();
+}
+
+void SceneNode::destroy()
+{
     for(std::vector<SceneNode *>::iterator it = children.begin(); it != children.end(); it++)
     {
-        delete *(it);
+        (*it)->destroy();
+        delete *it;
     }
 }
 
@@ -77,11 +81,6 @@ void SceneNode::draw(sf::RenderTarget& target, sf::RenderStates states) const
     states.transform *= getTransform();
 
     /*
-     * Draw node and children with changed transform, in a depth first fashion
-     */
-//    drawCurrent(target, states);
-//    drawChildren(target, states);
-    /*
      * Draw node and childen with changed transform, in a breadth first fashion
      */
     //Top of Queue will be current, pop it off
@@ -100,8 +99,6 @@ void SceneNode::draw(sf::RenderTarget& target, sf::RenderStates states) const
     if(!g_drawingQ.empty())
         g_drawingQ.front()->draw(target, states);
 
-// Draw bounding rectangle - disabled by default
-//drawBoundingRect(target, states);
 }
 
 /*
@@ -157,18 +154,8 @@ sf::Transform SceneNode::getWorldTransform() const
     return transform;
 }
 
-/*
- * Wait until I need this to implement it
- */
 void SceneNode::onCommand(const Command* command, sf::Time dt)
 {
-// Command current node, if category matches
-//if(command->category & getCategory())
-//    command->action(*this, dt);
-//
-//// Command children
-//FOREACH(Ptr & child, mChildren)
-//child->onCommand(command, dt);
 }
 
 unsigned int SceneNode::getCategory() const

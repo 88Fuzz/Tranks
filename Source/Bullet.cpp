@@ -86,11 +86,9 @@ void Bullet::updateCurrent(sf::Time dt)
     if(!isAlive())
         return;
 
-    //TODO this will break when rotation and zooming
     float movement = dt.asMilliseconds() * MOVEMENT_SPEED;
     sprite.move(xFactor * movement, yFactor * movement);
 
-    //This is stupid
     if(tileDeflectFlag)
     {
         tileDeflect += abs(xFactor * movement + yFactor * movement);
@@ -113,7 +111,7 @@ void Bullet::updateCurrent(sf::Time dt)
     posWidthI /= tileSize;
     tmpPos = posI;
 
-//Override if different, the two should never both be different than the current tilePos
+    //Override if different, the two should never both be different than the current tilePos
     if(posWidthI != tilePos && (dir == Direction::SOUTH || dir == Direction::EAST))
         tmpPos = posWidthI;
 
@@ -161,7 +159,7 @@ void Bullet::checkTileMovement(sf::Vector2i pos)
     {
         if((deflection = piece->getDeflection(getForwardDirection())) == 180)
         {
-            rotate(deflection); //piece->getDeflection(getForwardDirection()));
+            rotate(deflection);
         }
         else
         {
@@ -199,7 +197,6 @@ void Bullet::rotate(int rotation)
 
     switch(getForwardDirection())
     {
-//TODO there's probably a better way to do this
     case Moveable::Direction::NORTH:
         if(rotation == 90)
         {

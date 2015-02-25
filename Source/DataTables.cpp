@@ -5,9 +5,6 @@
 #include <stdlib.h>
 #include <iostream>
 
-// For std::bind() placeholders _1, _2, ...
-//using namespace std::placeholders;
-
 /*
  * Initializes array of TextureData for BoardPiece information.
  * Remember to free returned array!
@@ -99,7 +96,6 @@ TextureData *initializeButtonData()
  */
 TextureData *initializeBulletData()
 {
-    //TODO change PLAYER_COUNT to something better
     TextureData *data = (TextureData *) malloc(sizeof(TextureData) * MapCreator::PLAYER_COUNT);
     int size = 20;
 

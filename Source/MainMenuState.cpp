@@ -34,7 +34,6 @@ MainMenuState::MainMenuState(StateStack *stack, Context context) :
 
 MainMenuState::~MainMenuState()
 {
-//    buttons.free();
 }
 
 void MainMenuState::draw()

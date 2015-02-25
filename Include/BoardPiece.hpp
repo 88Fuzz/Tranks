@@ -23,7 +23,8 @@ public:
     };
     BoardPiece(Category::Type, TextureHolder*, float, float);
     BoardPiece(Category::Type, TextureHolder*, float, float, float);
-    void destroy();
+    virtual ~BoardPiece();
+    virtual void destroy();
     virtual void drawCurrent(sf::RenderTarget& target, sf::RenderStates states) const;
     float getSpriteWidth();
     float getSpriteHeight();

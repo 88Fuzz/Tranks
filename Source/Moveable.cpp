@@ -9,7 +9,12 @@ Moveable::Moveable(Category::Type category, int mapWidth, int mapHeight, int til
 
 Moveable::~Moveable()
 {
+    destroy();
+}
 
+void Moveable::destroy()
+{
+    SceneNode::destroy();
 }
 
 void Moveable::setMapWidth(int width)

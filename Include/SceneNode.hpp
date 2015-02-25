@@ -33,6 +33,7 @@ public:
     virtual sf::FloatRect getBoundingRect() const;
     virtual bool isAlive();
     virtual bool isDestroyed() const;
+    virtual void destroy();
     SceneNode* getChildNode(int);
     SceneNode* getChildNode(int, Category::Type);
     SceneNode* getChildNode(int, Category::Type, int);

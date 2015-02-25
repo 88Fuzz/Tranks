@@ -28,10 +28,6 @@ namespace GUI
     void Container::pack(Component* component)
     {
         children.push_back(component);
-
-        //TDO figure out what this if for
-//        if(!hasSelection() && component->isSelectable())
-//            select(children.size() - 1);
     }
 
     bool Container::isSelectable() const
@@ -86,28 +82,6 @@ namespace GUI
             }
         }
         return false;
-
-        // If we have selected a child then give it events
-//        if(hasSelection() && children[selectedChild]->isActive())
-//        {
-//            children[selectedChild]->handleEvent(event);
-//        }
-//        else if(event->type == sf::Event::KeyReleased)
-//        {
-//            if(event->key.code == sf::Keyboard::W || event->key.code == sf::Keyboard::Up)
-//            {
-//                selectPrevious();
-//            }
-//            else if(event->key.code == sf::Keyboard::S || event->key.code == sf::Keyboard::Down)
-//            {
-//                selectNext();
-//            }
-//            else if(event->key.code == sf::Keyboard::Return || event->key.code == sf::Keyboard::Space)
-//            {
-//                if(hasSelection())
-//                    children[selectedChild]->activate();
-//            }
-//        }
     }
 
     void Container::draw(sf::RenderTarget& target, sf::RenderStates states) const

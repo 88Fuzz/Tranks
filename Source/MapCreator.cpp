@@ -9,7 +9,6 @@
 #include <string.h>
 
 MapCreator::MapCreator(TextureHolder* textures) :
-//MapCreator::MapCreator(const TextureHolder& textures)//:
                 map(new BoardPiece(Category::Type::PARENT, textures, 0, 0)),
                 boardTextures(textures),
                 mapWidth(-1),
@@ -17,136 +16,10 @@ MapCreator::MapCreator(TextureHolder* textures) :
                 tileWidth(0),
                 tileHeight(0)
 {
-//    attachChild(&map);
-//    textures->get(Textures::BOARD);
 }
 
 MapCreator::~MapCreator()
 {
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
-    //TODO memory management yo!
 }
 
 /*
@@ -540,38 +413,6 @@ void MapCreator::parseDeflect(rapidxml::xml_node<> *node)
                     new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, BoardPiece::DeflectionDirection::NW),
                     MapCreator::get1d(x, y, mapWidth));
         }
-        /*switch(direction)
-         {
-         case 'N':
-         //TODO error check
-         std::cout << "WHAT THE FUCK: " << tileWidth << "\n";
-         map->swapChildNode(
-         new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, 90.0),
-         MapCreator::get1d(x, y, mapWidth));
-         break;
-         case 'S':
-         //TODO error check
-         map->swapChildNode(
-         new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, -90.0),
-         MapCreator::get1d(x, y, mapWidth));
-         break;
-         case 'E':
-         //TODO error check
-         map->swapChildNode(
-         new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight, 180.0),
-         MapCreator::get1d(x, y, mapWidth));
-         break;
-         case 'W':
-         //TODO error check
-         map->swapChildNode(new BoardPiece(Category::Type::DEFLECTOR, boardTextures, x * tileWidth, y * tileHeight),
-         MapCreator::get1d(x, y, mapWidth));
-         break;
-         default:
-         //TODO LOGGGGGGGGS
-         std::cerr << "Unknown player count\n";
-
-         }
-         */
     }
     else
     {

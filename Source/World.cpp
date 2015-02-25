@@ -14,8 +14,6 @@
 #include <iostream>
 #include <sstream>
 
-//TODO clean up this code
-
 World::World(sf::RenderWindow* outputTarget, FontHolder* fonts, int playerId, int numberOfPlayers,
         sf::TcpSocket *socket) :
                 window(outputTarget),
@@ -77,6 +75,7 @@ World::World(sf::RenderWindow* outputTarget, FontHolder* fonts, int playerId, in
 
 World::~World()
 {
+    map->destroy();
     if(map != NULL)
         delete map;
 
@@ -138,22 +137,6 @@ void World::update(sf::Time dt)
 {
     Command *command;
     int completed = 0;
-    // Scroll the world, reset player velocity
-//	worldView.move(0.f, mScrollSpeed * dt.asSeconds());
-
-// Forward commands to scene graph, adapt velocity (scrolling, diagonal correction)
-//	while (!mCommandQueue.isEmpty())
-//		sceneGraph.onCommand(mCommandQueue.pop(), dt);
-//    adaptPlayerVelocity();
-
-// Collision detection and response (may destroy entities)
-//	handleCollisions();
-
-// Remove all destroyed entities, create new ones
-//	sceneGraph.removeWrecks();
-
-//TODO un-comment this statement
-//    if(players.size() == pendingPlayerCommands.size())
 
     if(currState == IDLE)
     {
@@ -437,11 +420,6 @@ bool World::validateAction(Player *player, int numMoves)
     return true;
 }
 
-//CommandQueue* World::getCommandQueue()
-//{
-//	return mCommandQueue;
-//}
-
 void World::loadTextures()
 {
     textures.load(Textures::BUTTONS, "Media/Textures/Buttons.png");
@@ -455,25 +433,10 @@ void World::adaptPlayerPosition()
     // Keep player's position inside the screen bounds, at least borderDistance units from the border
     sf::FloatRect viewBounds = getViewBounds();
     const float borderDistance = 40.f;
-
-//	sf::Vector2f position = mPlayerAircraft->getPosition();
-//	position.x = std::max(position.x, viewBounds.left + borderDistance);
-//	position.x = std::min(position.x, viewBounds.left + viewBounds.width - borderDistance);
-//	position.y = std::max(position.y, viewBounds.top + borderDistance);
-//	position.y = std::min(position.y, viewBounds.top + viewBounds.height - borderDistance);
-//	mPlayerAircraft->setPosition(position);
 }
 
 void World::adaptPlayerVelocity()
 {
-//	sf::Vector2f velocity = mPlayerAircraft->getVelocity();
-
-// If moving diagonally, reduce velocity (to have always same velocity)
-//	if (velocity.x != 0.f && velocity.y != 0.f)
-//		mPlayerAircraft->setVelocity(velocity / std::sqrt(2.f));
-
-// Add scrolling velocity
-//	mPlayerAircraft->accelerate(0.f, mScrollSpeed);
 }
 
 void World::handleEvent(const sf::Event* event)
@@ -530,16 +493,11 @@ void World::buildScene()
     }
 
     //Button initialization
-    //TODO free the buttons in the button container
     GUI::Button *tmpButton = new GUI::Button(tmpContext, GUI::ButtonTypes::MOVE_DOUBLE, buttonX, buttonY, 100, 100);
     tmpButton->setCallback([&] ()
     {
         sendMoveToServer(GUI::ButtonTypes::MOVE_DOUBLE);
-        //Commented out single player setup
-//        pendingPlayerCommands[0] = GUI::ButtonTypes::MOVE_DOUBLE;
-//        playersReady++;
-//        generatePlayerMoves();
-        });
+    });
     trankControls.pack(tmpButton);
     buttonY += 100;
 
@@ -547,10 +505,7 @@ void World::buildScene()
     tmpButton->setCallback([&] ()
     {
         sendMoveToServer(GUI::ButtonTypes::MOVE_SINGLE);
-//        pendingPlayerCommands[0] = GUI::ButtonTypes::MOVE_SINGLE;
-//        playersReady++;
-//        generatePlayerMoves();
-        });
+    });
     trankControls.pack(tmpButton);
     buttonX += 100;
 
@@ -558,10 +513,7 @@ void World::buildScene()
     tmpButton->setCallback([&] ()
     {
         sendMoveToServer(GUI::ButtonTypes::CHECK_BOX);
-//        pendingPlayerCommands[0] = GUI::ButtonTypes::CHECK_BOX;
-//        playersReady++;
-//        generatePlayerMoves();
-        });
+    });
     sendCommandBox.pack(tmpButton);
     buttonX -= 100;
     buttonY += 100;
@@ -570,10 +522,7 @@ void World::buildScene()
     tmpButton->setCallback([&] ()
     {
         sendMoveToServer(GUI::ButtonTypes::ROTATE_FULL);
-//        pendingPlayerCommands[0] = GUI::ButtonTypes::ROTATE_FULL;
-//        playersReady++;
-//        generatePlayerMoves();
-        });
+    });
     trankControls.pack(tmpButton);
     buttonX -= 100;
 
@@ -581,10 +530,7 @@ void World::buildScene()
     tmpButton->setCallback([&] ()
     {
         sendMoveToServer(GUI::ButtonTypes::ROTATE_HALF_COUNTER);
-//        pendingPlayerCommands[0] = GUI::ButtonTypes::ROTATE_HALF_COUNTER;
-//        playersReady++;
-//        generatePlayerMoves();
-        });
+    });
     trankControls.pack(tmpButton);
     buttonX += 200;
 
@@ -592,10 +538,7 @@ void World::buildScene()
     tmpButton->setCallback([&] ()
     {
         sendMoveToServer(GUI::ButtonTypes::ROTATE_HALF_CLOCKWISE);
-//        pendingPlayerCommands[0] = GUI::ButtonTypes::ROTATE_HALF_CLOCKWISE;
-//        playersReady++;
-//        generatePlayerMoves();
-        });
+    });
     trankControls.pack(tmpButton);
     buttonX -= 100;
     buttonY += 100;
@@ -604,10 +547,7 @@ void World::buildScene()
     tmpButton->setCallback([&] ()
     {
         sendMoveToServer(GUI::ButtonTypes::FIRE);
-//        pendingPlayerCommands[0] = GUI::ButtonTypes::FIRE;
-//        playersReady++;
-//        generatePlayerMoves();
-        });
+    });
     trankControls.pack(tmpButton);
 
     buttonY += 130;
@@ -628,65 +568,6 @@ void World::buildScene()
 
     formatStatus();
     initScore();
-
-//    trankControls.pack()
-
-//    sf::RenderTexture bgTexture;
-//    bgTexture.create(mc.getWidth() * 75, mc.getHeight() * 75);
-
-//    bgTexture.draw(*board);
-//    bgTexture.display();
-
-    // Initialize the different layers
-//	for (std::size_t i = 0; i < LAYERCOUNT; ++i)
-//	{
-//		Category::Type category = (i == LowerAir) ? Category::SceneAirLayer : Category::NONE;
-//
-//		SceneNode::Ptr layer(new SceneNode(category));
-//		sceneLayers[i] = layer.get();
-//
-//		sceneGraph.attachChild(std::move(layer));
-//	}
-//
-//	// Prepare the tiled background
-//	sf::Texture& jungleTexture = textures.get(Textures::Jungle);
-//	jungleTexture.setRepeated(true);
-//
-//	float viewHeight = worldView.getSize().y;
-//	sf::IntRect textureRect(worldBounds);
-//	textureRect.height += static_cast<int>(viewHeight);
-//
-//	// Add the background sprite to the scene
-//	std::unique_ptr<SpriteNode> jungleSprite(new SpriteNode(jungleTexture, textureRect));
-//	jungleSprite->setPosition(worldBounds.left, worldBounds.top - viewHeight);
-//	sceneLayers[Background]->attachChild(std::move(jungleSprite));
-//
-//	// Add the finish line to the scene
-//	sf::Texture& finishTexture = textures.get(Textures::FinishLine);
-//	std::unique_ptr<SpriteNode> finishSprite(new SpriteNode(finishTexture));
-//	finishSprite->setPosition(0.f, -76.f);
-//	sceneLayers[Background]->attachChild(std::move(finishSprite));
-//
-//	// Add particle node to the scene
-//	std::unique_ptr<ParticleNode> smokeNode(new ParticleNode(Particle::Smoke, textures));
-//	sceneLayers[LowerAir]->attachChild(std::move(smokeNode));
-//
-//	// Add propellant particle node to the scene
-//	std::unique_ptr<ParticleNode> propellantNode(new ParticleNode(Particle::Propellant, textures));
-//	sceneLayers[LowerAir]->attachChild(std::move(propellantNode));
-//
-//	// Add sound effect node
-//	std::unique_ptr<SoundNode> soundNode(new SoundNode(mSounds));
-//	sceneGraph.attachChild(std::move(soundNode));
-//
-//	// Add player's aircraft
-//	std::unique_ptr<Aircraft> player(new Aircraft(Aircraft::Eagle, textures, fonts));
-//	mPlayerAircraft = player.get();
-//	mPlayerAircraft->setPosition(mSpawnPosition);
-//	sceneLayers[UpperAir]->attachChild(std::move(player));
-//
-//	// Add enemy aircraft
-//	addEnemies();
 }
 
 sf::FloatRect World::getViewBounds() const

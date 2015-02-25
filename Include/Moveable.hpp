@@ -18,6 +18,7 @@ public:
 
     Moveable(Category::Type, int, int, int, Direction);
     virtual ~Moveable();
+    virtual void destroy();
 
     void setMapWidth(int);
     int getMapWidth();

@@ -11,7 +11,6 @@
 
 sf::IpAddress getIpFromFile()
 {
-    // Try to open existing file (RAII block)
     std::ifstream inputFile("ip.txt");
     std::string ipAddress;
     if(!(inputFile >> ipAddress))
@@ -175,7 +174,6 @@ void LobbyState::handlePacket(sf::Int32 packetType, sf::Packet* packet)
         *packet >> tmp32;
         numberOfPlayers=tmp32;
 
-        std::cout << "GAME STARTING!! with " << numberOfPlayers << " players\n";
         for(int j=0; j<numberOfPlayers; j++)
         {
             *packet >> tmp32;
@@ -187,7 +185,6 @@ void LobbyState::handlePacket(sf::Int32 packetType, sf::Packet* packet)
             }
             *packet >> tmp32;
         }
-        std::cout << "this playerId = " << playerId << "\n";
         requestStackSwap(States::ID::GAME, playerId, numberOfPlayers, socket, server);
     }
 }

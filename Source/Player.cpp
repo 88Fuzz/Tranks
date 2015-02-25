@@ -105,12 +105,6 @@ void Player::updateCurrent(sf::Time dt)
             std::cerr << "forward angle of " << forward << " not found\n";
         }
     }
-
-    //Check if player's bullet is alive or if it has killed anyone
-//    if(!bullet->isAlive())
-//    {
-//        std::cout << "BULLET IS DEAD\n";
-//    }
 }
 
 void Player::drawCurrent(sf::RenderTarget& target, sf::RenderStates states) const
@@ -171,17 +165,6 @@ void Player::startMovement(int limit)
     if(moving)
         //TODO logging
         std::cerr << "Already moving, game in bad state\n";
-
-//TODO THIS WILL BREAK HORRIBLY ONCE YOU GET MAP MOVEMENTS!
-//TODO THIS WILL BREAK HORRIBLY ONCE YOU GET MAP MOVEMENTS!
-//TODO THIS WILL BREAK HORRIBLY ONCE YOU GET MAP MOVEMENTS!
-//TODO THIS WILL BREAK HORRIBLY ONCE YOU GET MAP MOVEMENTS!
-//TODO THIS WILL BREAK HORRIBLY ONCE YOU GET MAP MOVEMENTS!
-//TODO THIS WILL BREAK HORRIBLY ONCE YOU GET MAP MOVEMENTS!
-//TODO THIS WILL BREAK HORRIBLY ONCE YOU GET MAP MOVEMENTS!
-//TODO THIS WILL BREAK HORRIBLY ONCE YOU GET MAP MOVEMENTS!
-//TODO THIS WILL BREAK HORRIBLY ONCE YOU GET MAP MOVEMENTS!
-//TODO THIS WILL BREAK HORRIBLY ONCE YOU GET MAP MOVEMENTS!
 
     switch(getForwardDirection())
     {

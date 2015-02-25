@@ -109,30 +109,15 @@ void GameServer::handleIncomingConnections()
 
     if(socketListener.accept(clientConnections[connectedPlayers]->socket) == sf::TcpListener::Done)
     {
-        std::cout << "NEW CONNECTION! " << connectedPlayers << "\n";
-        //order the new client to spawn its own plane ( player 1 )
-//        mAircraftInfo[mAircraftIdentifierCounter].position = sf::Vector2f(mBattleFieldRect.width / 2,
-//                mBattleFieldRect.top + mBattleFieldRect.height / 2);
-//        mAircraftInfo[mAircraftIdentifierCounter].hitpoints = 100;
-//        mAircraftInfo[mAircraftIdentifierCounter].missileAmmo = 2;
-
         sf::Packet packet;
-//        packet << static_cast<sf::Int32>(Server::SpawnSelf);
-//        packet << mAircraftIdentifierCounter;
-//        packet << mAircraftInfo[mAircraftIdentifierCounter].position.x;
-//        packet << mAircraftInfo[mAircraftIdentifierCounter].position.y;
-//
-//        clientConnections[connectedPlayers]->aircraftIdentifiers.push_back(mAircraftIdentifierCounter);
 
-//        broadcastMessage("New player!");
         informWorldState(clientConnections[connectedPlayers]);
         notifyNewConnection();
 
         clientConnections[connectedPlayers]->socket.send(packet);
         clientConnections[connectedPlayers]->ready = true;
-        clientConnections[connectedPlayers]->lastPacketTime = now(); // prevent initial timeouts
+        clientConnections[connectedPlayers]->lastPacketTime = now();
         clientConnections[connectedPlayers]->playerIdentifier = ++playerIdentifierCount;
-//        mAircraftCount++;
         connectedPlayers++;
 
         clientConnections.push_back(new RemoteConnection());
@@ -162,12 +147,13 @@ void GameServer::handleIncomingPackets()
             }
 
             //TODO implement a heartbeat
-            /*            if(now() >= (*it)->lastPacketTime + CLIENT_TIME_OUT)
-             {
-             (*it)->timedOut = true;
-             detectedTimeout = true;
-             }
-             */
+            /*
+            if(now() >= (*it)->lastPacketTime + CLIENT_TIME_OUT)
+            {
+                (*it)->timedOut = true;
+                detectedTimeout = true;
+            }
+            */
         }
     }
 
@@ -180,14 +166,12 @@ void GameServer::sendGameStartMessage()
     sf::Packet packet;
     int j = 0;
 
-    //TODO more work to be done here???
     packet << INT32(Server::START_GAME);
     packet << INT32(clientConnections.size() - 1);
     for(std::vector<RemoteConnection *>::iterator it = clientConnections.begin(); it != clientConnections.end(); it++)
     {
         if((*it)->ready)
         {
-            std::cout << "mapping playerId " << (*it)->playerIdentifier << " to " << j << "\n";
             packet << INT32((*it)->playerIdentifier) << INT32(j);
             playerInfoMap.insert(std::pair<sf::Int32, PlayerInfo *>(INT32(j), new PlayerInfo()));
             (*it)->playerIdentifier = j++;
@@ -205,35 +189,19 @@ void GameServer::handleDisconnections()
         {
             // Inform everyone of the disconnection, erase
             sf::Int32 identifier = (*itr)->playerIdentifier;
-//            sendToAll(&(sf::Packet() << static_cast<sf::Int32>(Server::PLAYER_DISCONNECT) << identifier));
 
             playerInfoMap.erase(identifier);
 
             connectedPlayers--;
-//            mAircraftCount -= (*itr)->aircraftIdentifiers.size();
 
             itr = clientConnections.erase(itr);
 
             // Go back to a listening state if needed
-            //TODO this needs to be changed to if it is in lobby, add connection.
-            //TODO else it is in game and do not accept connections
             if(connectedPlayers < MAX_PLAYERS)
             {
                 clientConnections.push_back(new RemoteConnection());
                 setListening(true);
             }
-
-            //TODO FIX THIS SHIT
-            //TODO FIX THIS SHIT
-            //TODO FIX THIS SHIT
-            //TODO FIX THIS SHIT
-            //TODO FIX THIS SHIT
-            //TODO FIX THIS SHIT
-            //TODO FIX THIS SHIT
-            //TODO FIX THIS SHIT
-            //TODO FIX THIS SHIT
-            //TODO FIX THIS SHIT
-//            broadcastMessage("Player " << (*itr).playerIdentifier << " has disconnected.");
         }
         else
         {
@@ -258,7 +226,6 @@ void GameServer::handleIncomingPacket(sf::Packet* packet, RemoteConnection* conn
     switch(packetType)
     {
     case Client::QUIT:
-        std::cout << "Player disconnect!!!!! sending " << connectedPlayers - 1 << "\n";
         //Player is host
         if(connection->playerIdentifier == 0)
         {
@@ -266,8 +233,7 @@ void GameServer::handleIncomingPacket(sf::Packet* packet, RemoteConnection* conn
             sendToAll(&(sf::Packet() << INT32(Server::HOST_DISCONNECT)));
         }
         else
-            sendToAll(
-                    &(sf::Packet() << INT32(Server::PLAYER_DISCONNECT) << INT32(connection->playerIdentifier)
+            sendToAll(&(sf::Packet() << INT32(Server::PLAYER_DISCONNECT) << INT32(connection->playerIdentifier)
                             << INT32(connectedPlayers - 1)));
 
         connection->timedOut = true;
@@ -310,21 +276,7 @@ void GameServer::informWorldState(RemoteConnection *connection)
 {
     sf::Packet packet;
     packet << INT32(Server::INITIAL_STATE);
-//    packet << mWorldHeight << mBattleFieldRect.top + mBattleFieldRect.height;
-//    packet << INT32(mAircraftCount);
-//TODO is having a player count necessary when there's a connectedPlayers count?
     packet << INT32(connectedPlayers + 1);
-
-//    for(std::size_t i = 0; i < connectedPlayers; ++i)
-//    {
-//        if(clientConnections[i].ready)
-//        {
-//            packet << connectedPlayers;
-//        FOREACH(sf::Int32 identifier, clientConnections[i]->aircraftIdentifiers)
-//        packet << identifier << mAircraftInfo[identifier].position.x << mAircraftInfo[identifier].position.y << mAircraftInfo[identifier].hitpoints << mAircraftInfo[identifier].missileAmmo;
-//        }
-//    }
-
     connection->socket.send(packet);
 }
 
@@ -355,8 +307,6 @@ void GameServer::notifyNewConnection()
     {
         if(clientConnections[i]->ready)
         {
-//            packet << aircraftIdentifier << mAircraftInfo[aircraftIdentifier].position.x
-//                    << mAircraftInfo[aircraftIdentifier].position.y;
             clientConnections[i]->socket.send(packet);
         }
     }

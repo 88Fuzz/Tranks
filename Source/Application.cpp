@@ -18,7 +18,6 @@ Application::Application(int width, int height, int windowStyle) :
                 statisticsNumFrames(0)
 {
     window.setKeyRepeatEnabled(false);
-//    window.setVerticalSyncEnabled(true);
     fonts.load(Fonts::Sansation, "Media/Sansation.ttf");
     statisticsText.setFont(fonts.get(Fonts::Sansation));
     statisticsText.setPosition(5.f, 5.f);
@@ -26,7 +25,6 @@ Application::Application(int width, int height, int windowStyle) :
 
     registerStates();
     stateStack.pushState(States::MAIN_MENU);
-//    stateStack.pushState(States::GAME);
 }
 
 void Application::run()
@@ -109,13 +107,7 @@ void Application::updateStatistics(sf::Time dt)
  */
 void Application::registerStates()
 {
-//    stateStack.registerState < TitleState > (States::Title);
-//    stateStack.registerState < MenuState > (States::Menu);
-//    stateStack.registerState<GameState>(States::GAME);
     stateStack.registerState<MainMenuState>(States::MAIN_MENU);
     stateStack.registerState<LobbyState>(States::HOST_LOBBY, true);
     stateStack.registerState<LobbyState>(States::JOIN_LOBBY, false);
-//    stateStack.registerState < PauseState > (States::Pause);
-//    stateStack.registerState < SettingsState > (States::Settings);
-//    stateStack.registerState < GameOverState > (States::GameOver);
 }

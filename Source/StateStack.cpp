@@ -10,7 +10,6 @@ StateStack::StateStack(State::Context context) :
 void StateStack::update(sf::Time dt)
 {
     // Iterate from top to bottom, stop as soon as update() returns false
-    //TODO figure out why this will be terminated by a false
     for(auto itr = stateStack.rbegin(); itr != stateStack.rend(); ++itr)
     {
         if(!(*itr)->update(dt))

@@ -64,9 +64,14 @@ BoardPiece::BoardPiece(Category::Type pieceType, TextureHolder* textures, float 
     }
 }
 
+BoardPiece::~BoardPiece()
+{
+    destroy();
+}
+
 void BoardPiece::destroy()
 {
-
+    SceneNode::destroy();
 }
 
 /*
